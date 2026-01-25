@@ -38,9 +38,10 @@
             (nvf.lib.neovimConfiguration {
               inherit pkgs;
               modules = [ ./nvf-configuration.nix ];
-            }).package;
+            }).neovim;
         in {
           packages.default = nvimPackage;
+
           apps.default = {
             type = "app";
             program = "${nvimPackage}/bin/nvim";
