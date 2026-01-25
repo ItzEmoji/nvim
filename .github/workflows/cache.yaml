@@ -3,7 +3,6 @@ name: Build nvf and push to Cachix
 on:
   push:
     branches: [ main ]
-  pull_request:
   workflow_dispatch:
 
 permissions:
@@ -13,6 +12,13 @@ jobs:
   build:
     runs-on: ubuntu-latest
     environment: cachix
+
+    strategy:
+      fail-fast: false
+      matrix:
+        system:
+          - x86_64-linux
+          - aarch64-linux
 
     steps:
       # -------------------------
@@ -41,10 +47,24 @@ jobs:
           authToken: ${{ secrets.CACHIX_AUTH_TOKEN }}
 
       # -------------------------
-      # Build nvf / Neovim
+      # Build EXACT nvf package
       # -------------------------
       - name: Build Neovim (nvf)
         run: |
           set -euxo pipefail
-          nix build .#default
+
+          nix build \
+            .#packages.${{ matrix.system }}.default \
+            --print-out-paths > outpaths
+
+          echo "Built paths:"
+          cat outpaths
+
+      # -------------------------
+      # Push EXACT paths to Cachix
+      # -------------------------
+      - name: Push to Cachix
+        run: |
+          set -euxo pipefail
+          cachix push itzemoji $(cat outpaths)
 
