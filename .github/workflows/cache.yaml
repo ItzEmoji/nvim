@@ -35,14 +35,11 @@ jobs:
           name: itzemoji
           authToken: ${{ secrets.CACHIX_AUTH_TOKEN }}
 
-      # 🔥 DAS ist der Trick
       - name: Build EXACTLY what nix run uses
         run: |
           set -euxo pipefail
+          nix build .#packages.x86_64-linux.default --accept-flake-config
 
-          nix build \
-            .#apps.x86_64-linux.default \
-            --accept-flake-config
 
       - name: Push FULL closure to Cachix
         run: |
