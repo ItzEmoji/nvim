@@ -1,4 +1,4 @@
-name: Build & Push nvf to Cachix
+name: Build nvf and push to Cachix
 
 on:
   push:
@@ -6,27 +6,45 @@ on:
   pull_request:
   workflow_dispatch:
 
+permissions:
+  contents: read
+
 jobs:
   build:
     runs-on: ubuntu-latest
+    environment: cachix
 
     steps:
-      - name: Checkout repo
+      # -------------------------
+      # Checkout
+      # -------------------------
+      - name: Checkout
         uses: actions/checkout@v4
 
+      # -------------------------
+      # Install Nix
+      # -------------------------
       - name: Install Nix
-        uses: DeterminateSystems/nix-installer-action@v9
+        uses: cachix/install-nix-action@v25
+        with:
+          extra_nix_config: |
+            experimental-features = nix-command flakes
+            access-tokens = github.com=${{ secrets.GITHUB_TOKEN }}
 
-      - name: Enable Nix cache
-        uses: DeterminateSystems/magic-nix-cache-action@v4
-
+      # -------------------------
+      # Setup Cachix
+      # -------------------------
       - name: Setup Cachix
         uses: cachix/cachix-action@v14
         with:
-          name: DEIN-CACHIX-CACHE
+          name: itzemoji
           authToken: ${{ secrets.CACHIX_AUTH_TOKEN }}
 
-      - name: Build nvf
+      # -------------------------
+      # Build nvf / Neovim
+      # -------------------------
+      - name: Build Neovim (nvf)
         run: |
-          nix build .#nvf
+          set -euxo pipefail
+          nix build .#default
 
