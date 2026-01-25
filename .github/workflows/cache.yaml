@@ -45,6 +45,6 @@ jobs:
         run: |
           set -euxo pipefail
 
-          nix path-info -r .#apps.x86_64-linux.default \
+          nix path-info -r .#packages.x86_64-linux.default \
             | cachix push itzemoji
 
