@@ -1,5 +1,5 @@
 {
-  description = "ItzEmoji's Neovim (nvf) – prebuilt via Cachix, nix run friendly";
+  description = "ItzEmoji's Neovim (nvf) – prebuilt, cached, nix run friendly";
 
   nixConfig = {
     substituters = [
@@ -33,20 +33,19 @@
       ];
 
       perSystem = { system, pkgs, ... }:
-      let
-        nvimPackage =
-          (nvf.lib.neovimConfiguration {
-            inherit pkgs;
-            modules = [ ./nvf-configuration.nix ];
-          }).neovim;
-      in {
-        packages.default = nvimPackage;
-
-        apps.default = {
-          type = "app";
-          program = "${nvimPackage}/bin/nvim";
+        let
+          nvimPackage =
+            (nvf.lib.neovimConfiguration {
+              inherit pkgs;
+              modules = [ ./nvf-configuration.nix ];
+            }).package;
+        in {
+          packages.default = nvimPackage;
+          apps.default = {
+            type = "app";
+            program = "${nvimPackage}/bin/nvim";
+          };
         };
-      };
     };
 }
 
