@@ -9,6 +9,7 @@
 
     trusted-public-keys = [
       "itzemoji.cachix.org-1:GHoBtGODGZYPwBZDJrbGDbOHRWq0Kn3TD3x5KC5NYZk="
+      "cache.nixos.org-1:6NCHdD59X431o0gWypbMrAURkbJ16ZPMQFGspcDShjY="
     ];
   };
 
