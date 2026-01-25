@@ -13,6 +13,12 @@ jobs:
     runs-on: ubuntu-latest
     environment: cachix
 
+    # 🔥 GLOBAL: Flake-Config akzeptieren
+    env:
+      NIX_CONFIG: |
+        experimental-features = nix-command flakes
+        accept-flake-config = true
+
     steps:
       # -------------------------
       # Checkout
@@ -41,7 +47,6 @@ jobs:
         uses: cachix/install-nix-action@v25
         with:
           extra_nix_config: |
-            experimental-features = nix-command flakes
             extra-platforms = aarch64-linux
             system-features = kvm big-parallel
             access-tokens = github.com=${{ secrets.GITHUB_TOKEN }}
@@ -64,6 +69,7 @@ jobs:
 
           nix build \
             .#packages.aarch64-linux.default \
+            --accept-flake-config \
             --print-out-paths > outpaths
 
           echo "Built paths:"
