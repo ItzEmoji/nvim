@@ -1,4 +1,14 @@
 {
+  nixConfig = {
+    substituters = [
+      "https://itzemoji.cachix.org"
+      "https://cache.nixos.org"
+    ];
+
+    trusted-public-keys = [
+      "itzemoji.cachix.org-1:GHoBtGODGZYPwBZDJrbGDbOHRWq0Kn3TD3x5KC5NYZk="
+    ];
+  };
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
     nvf.url = "github:notashelf/nvf";
