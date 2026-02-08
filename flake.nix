@@ -3,12 +3,12 @@
 
   nixConfig = {
     substituters = [
-      "https://itzemoji.cachix.org"
+      "https://cache.itzemoji.com/nix"
       "https://cache.nixos.org"
     ];
 
     trusted-public-keys = [
-      "itzemoji.cachix.org-1:GHoBtGODGZYPwBZDJrbGDbOHRWq0Kn3TD3x5KC5NYZk="
+      "cache.itzemoji.com/nix:xiCpklCqm9MDpLJIWSlL5YsKM0nULH7J389tvbX4UzE="
       "cache.nixos.org-1:6NCHdD59X431o0gWypbMrAURkbJ16ZPMQFGspcDShjY="
     ];
   };
