@@ -1,4 +1,4 @@
-name: Build nvf (x86_64) and push to Cachix
+name: Build nvf (x86_64, aarch64) and push to Attic
 
 on:
   push:
@@ -9,11 +9,24 @@ permissions:
   contents: read
 
 jobs:
-  build-x86_64:
-    runs-on: ubuntu-latest
-    environment: cachix
+  build:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - arch: x86_64-linux
+            runner: ubuntu-latest
+          - arch: aarch64-linux
+            runner: ubuntu-24.04-arm
+
+    runs-on: ${{ matrix.runner }}
+    environment: cache
 
     env:
+      ATTIC_SERVER: ${{ secrets.ATTIC_SERVER }}
+      ATTIC_CACHE:  ${{ secrets.ATTIC_CACHE }}
+      ATTIC_TOKEN:  ${{ secrets.ATTIC_TOKEN }}
+
       NIX_CONFIG: |
         experimental-features = nix-command flakes
         accept-flake-config = true
@@ -22,6 +35,9 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      # -------------------------
+      # Install Nix
+      # -------------------------
       - name: Install Nix
         uses: cachix/install-nix-action@v25
         with:
@@ -29,22 +45,33 @@ jobs:
             system-features = kvm big-parallel
             access-tokens = github.com=${{ secrets.GITHUB_TOKEN }}
 
-      - name: Setup Cachix
-        uses: cachix/cachix-action@v14
-        with:
-          name: itzemoji
-          authToken: ${{ secrets.CACHIX_AUTH_TOKEN }}
+      # -------------------------
+      # Install & Configure Attic
+      # -------------------------
+      - name: Install Attic
+        run: |
+          nix profile install nixpkgs#attic-client
 
-      - name: Build EXACTLY what nix run uses
+      - name: Configure Attic
+        run: |
+          attic login --token "$ATTIC_TOKEN" "$ATTIC_SERVER"
+          attic use "$ATTIC_CACHE"
+
+      # -------------------------
+      # Build
+      # -------------------------
+      - name: Build nvf (${{ matrix.arch }})
         run: |
           set -euxo pipefail
-          nix build .#packages.x86_64-linux.default --accept-flake-config
+          nix build .#packages.${{ matrix.arch }}.default \
+            --accept-flake-config \
+            -o result
 
-
-      - name: Push FULL closure to Cachix
+      # -------------------------
+      # Push
+      # -------------------------
+      - name: Push build result to Attic
         run: |
           set -euxo pipefail
-
-          nix path-info -r .#packages.x86_64-linux.default \
-            | cachix push itzemoji
+          attic push "$ATTIC_CACHE" ./result
 
