@@ -54,7 +54,7 @@ jobs:
 
       - name: Configure Attic
         run: |
-          attic login --token "$ATTIC_TOKEN" "$ATTIC_SERVER"
+          attic login local "$ATTIC_SERVER" "$ATTIC_TOKEN"
           attic use "$ATTIC_CACHE"
 
       # -------------------------
