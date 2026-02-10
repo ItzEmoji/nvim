@@ -73,5 +73,5 @@ jobs:
       - name: Push build result to Attic
         run: |
           set -euxo pipefail
-          attic push "$ATTIC_CACHE" ./result --recursive
+          attic push "$ATTIC_CACHE" ./result --ignore-upstream-cache-filter
 
