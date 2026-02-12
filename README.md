@@ -1,4 +1,4 @@
-[![built with nix](https://builtwithnix.org/badge.svg)](https://builtwithnix.org) [![CI](https://github.com/ItzEmoji/nvim/actions/workflows/build.yml/badge.svg)](https://github.com/ItzEmoji/nvim/actions)
+[![built with nix](https://builtwithnix.org/badge.svg)](https://builtwithnix.org) [![Build nvf (x86_64, aarch64)](https://github.com/ItzEmoji/nvim/actions/workflows/cache.yaml/badge.svg)](https://github.com/ItzEmoji/nvim/actions/workflows/cache.yaml)
 # NVF-Neovim-Config
 A declaratively managed Neovim configuration using pure Nix and NVF.
 
