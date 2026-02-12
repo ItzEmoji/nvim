@@ -15,11 +15,10 @@
 
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
-
     nvf.url = "github:notashelf/nvf";
     nvf.inputs.nixpkgs.follows = "nixpkgs";
-
     flake-parts.url = "github:hercules-ci/flake-parts";
+    import-tree.url = "github:vic/import-tree";
   };
 
   outputs = inputs@{ self, nixpkgs, flake-parts, nvf, ... }:
@@ -37,7 +36,7 @@
           nvimPackage =
             (nvf.lib.neovimConfiguration {
               inherit pkgs;
-              modules = [ ./nvf-configuration.nix ];
+              modules = [ (inputs.import-tree ./conf) ];
             }).neovim;
         in {
           packages.default = nvimPackage;
