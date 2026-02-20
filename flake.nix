@@ -19,10 +19,13 @@
     nvf.inputs.nixpkgs.follows = "nixpkgs";
     flake-parts.url = "github:hercules-ci/flake-parts";
     import-tree.url = "github:vic/import-tree";
+    treefmt-nix.url = "github:numtide/treefmt-nix";
   };
 
-  outputs = inputs@{ self, nixpkgs, flake-parts, nvf, ... }:
-    flake-parts.lib.mkFlake { inherit inputs; } {
+  outputs =
+    inputs:
+    inputs.flake-parts.lib.mkFlake { inherit inputs; } {
+      imports = [ (inputs.import-tree ./modules) ];
 
       systems = [
         "x86_64-linux"
@@ -30,22 +33,5 @@
         "x86_64-darwin"
         "aarch64-darwin"
       ];
-
-      perSystem = { system, pkgs, ... }:
-        let
-          nvimPackage =
-            (nvf.lib.neovimConfiguration {
-              inherit pkgs;
-              modules = [ (inputs.import-tree ./conf) ];
-            }).neovim;
-        in {
-          packages.default = nvimPackage;
-
-          apps.default = {
-            type = "app";
-            program = "${nvimPackage}/bin/nvim";
-          };
-        };
     };
 }
-
