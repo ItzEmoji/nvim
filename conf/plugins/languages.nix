@@ -1,7 +1,7 @@
 # languages.nix
 { ... }:
 {
-  
+
   vim.lsp.enable = true;
   vim.lsp.trouble.enable = true;
   vim.treesitter.enable = true;

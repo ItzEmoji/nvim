@@ -2,12 +2,10 @@
 {
   vim.autocomplete.nvim-cmp = {
     enable = true;
-    sourcePlugins = 
-    [
-      "cmp-path"  
+    sourcePlugins = [
+      "cmp-path"
     ];
-    sources = 
-    {
+    sources = {
       path = "[path]";
       luasnip = "[luasnip]";
       buffer = "[buffer]";

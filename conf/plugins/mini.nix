@@ -9,4 +9,3 @@
     sessions.enable = true;
   };
 }
-
