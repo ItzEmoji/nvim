@@ -74,4 +74,16 @@ jobs:
         run: |
           set -euxo pipefail
           attic push "$ATTIC_CACHE" ./result --ignore-upstream-cache-filter
+      # -------------------------
+      # Send Status to gitlab
+      # -------------------------
+      - name: Send status to GitLab
+        if: always()
+        run: |
+          STATUS="success"
+          if [ "${{ job.status }}" != "success" ]; then STATUS="failed"; fi
 
+          curl --request POST \
+          --header "PRIVATE-TOKEN: ${{ secrets.GITLAB_TOKEN }}" \
+          "https://gitlab.com/api/v4/projects/<PROJECT_ID>/statuses/${{ github.sha }}?state=$STATUS&context=github-actions"
+  
