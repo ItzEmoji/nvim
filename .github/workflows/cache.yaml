@@ -1,13 +1,10 @@
 name: Build nvf (x86_64, aarch64) and push to Attic
-
 on:
   push:
-    branches: [ main ]
+    branches: [main]
   workflow_dispatch:
-
 permissions:
   contents: read
-
 jobs:
   build:
     strategy:
@@ -18,23 +15,18 @@ jobs:
             runner: ubuntu-latest
           - arch: aarch64-linux
             runner: ubuntu-24.04-arm
-
     runs-on: ${{ matrix.runner }}
     environment: cache
-
     env:
       ATTIC_SERVER: ${{ secrets.ATTIC_SERVER }}
-      ATTIC_CACHE:  ${{ secrets.ATTIC_CACHE }}
-      ATTIC_TOKEN:  ${{ secrets.ATTIC_TOKEN }}
-
+      ATTIC_CACHE: ${{ secrets.ATTIC_CACHE }}
+      ATTIC_TOKEN: ${{ secrets.ATTIC_TOKEN }}
       NIX_CONFIG: |
         experimental-features = nix-command flakes
         accept-flake-config = true
-
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-
       # -------------------------
       # Install Nix
       # -------------------------
@@ -44,19 +36,16 @@ jobs:
           extra_nix_config: |
             system-features = kvm big-parallel
             access-tokens = github.com=${{ secrets.GITHUB_TOKEN }}
-
       # -------------------------
       # Install & Configure Attic
       # -------------------------
       - name: Install Attic
         run: |
           nix profile install nixpkgs#attic-client
-
       - name: Configure Attic
         run: |
           attic login local "$ATTIC_SERVER" "$ATTIC_TOKEN"
           attic use "$ATTIC_CACHE"
-
       # -------------------------
       # Build
       # -------------------------
@@ -66,7 +55,6 @@ jobs:
           nix build .#packages.${{ matrix.arch }}.default \
             --accept-flake-config \
             -o result
-
       # -------------------------
       # Push
       # -------------------------
@@ -89,4 +77,4 @@ jobs:
 
           curl --request POST \
             --header "PRIVATE-TOKEN: ${{ secrets.GITLAB_TOKEN }}" \
-            "https://gitlab.com/api/v4/projects/79669592/statuses/${{ github.sha }}?state=$STATE&context=${{ github.job }}&target_url=${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+            "https://gitlab.com/api/v4/projects/${{ vars.GITLAB_PROJECT_ID }}/statuses/${{ github.sha }}?state=$STATE&context=${{ github.job }}&target_url=${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"

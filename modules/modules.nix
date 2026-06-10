@@ -2,9 +2,9 @@
 {
   flake = {
     flakeModules.nvim = {
-      perSystem = { pkgs, system, ... }: {
+      perSystem = { pkgs, stdenv, ... }: {
         app.default = {
-          program = "${self.packages.${system}.nvim}/bin/nvim";
+          program = "${self.packages.${stdenv.hostPlatform.system}.nvim}/bin/nvim";
         };
       };
     };
