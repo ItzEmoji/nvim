@@ -2,7 +2,6 @@
 {
   vim.statusline.lualine = {
     enable = true;
-    theme = "catppuccin";
     sectionSeparator = {
       left = "";
       right = "";

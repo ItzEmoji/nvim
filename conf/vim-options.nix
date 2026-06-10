@@ -8,8 +8,8 @@
     };
     theme = {
       enable = true;
-      name = "catppuccin";
-      style = "mocha";
+      name = "gruvbox";
+      style = "dark";
     };
     statusline.lualine.enable = true;
   };
