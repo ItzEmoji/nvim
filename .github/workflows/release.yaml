@@ -18,4 +18,5 @@ jobs:
         with:
           release-type: simple
           skip-github-pull-request: true
-
+        env: 
+          GITHUB_TOKEN: ${{ github.token }}
