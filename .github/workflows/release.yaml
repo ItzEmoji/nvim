@@ -14,9 +14,14 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: googleapis/release-please-action@v4
+      - name: Generate App Token 
+        id: app-token
+        uses: actions/create-github-app-token@v2
+        with: 
+          client-id: ${{ secrets.APP_CLIENT_ID }}
+          private-key: ${{ secrets.APP_PRIVATE_KEY }}
+      - uses: googleapis/release-please-action@v5
         with:
-          release-type: simple
-          skip-github-pull-request: true
+          config: .github/release-please-config.json
         env: 
           GITHUB_TOKEN: ${{ github.token }}
