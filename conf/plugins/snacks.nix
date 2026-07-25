@@ -18,9 +18,9 @@
       };
       explorer = {
         enabled = true;
-        layout = [
-          { cycle = false; }
-        ];
+        layout = {
+          cycle = false;
+        };
       };
       indent.enabled = true;
       input.enabled = true;
