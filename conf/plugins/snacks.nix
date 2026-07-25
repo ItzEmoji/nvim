@@ -34,7 +34,6 @@
       scroll.enabled = true;
       statuscolumn.enabled = true;
       words.enabled = true;
-      styles.enabled = true;
       image.enabled = true;
 
     };
