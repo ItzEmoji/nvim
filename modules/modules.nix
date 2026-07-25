@@ -10,13 +10,13 @@
     };
     nixosModules.nvim = { pkgs, ... }: {
       environment.systemPackages = [
-        self.packages.${pkgs.system}.nvim 
-      ]; 
-    }; 
-    homeManagerModules.nvim = { pkgs, ... }:  {
+        self.packages.${pkgs.system}.nvim
+      ];
+    };
+    homeManagerModules.nvim = { pkgs, ... }: {
       home.packages = [
-        self.packages.${pkgs.system}.nvim 
-      ]; 
+        self.packages.${pkgs.system}.nvim
+      ];
     };
   };
 }

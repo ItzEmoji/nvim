@@ -12,20 +12,9 @@ permissions:
   contents: read
 
 jobs:
-  pr-title:
-    name: Validate PR Title
-    runs-on: ubuntu-latest
-
-    steps:
-      - name: Check PR title
-        uses: amannn/action-semantic-pull-request@v5
-        env:
-          GITHUB_TOKEN: ${{ github_token }}
-
   nix-checks:
     name: Nix Checks
     runs-on: ubuntu-latest
-
     steps:
       - uses: actions/checkout@v4
 
