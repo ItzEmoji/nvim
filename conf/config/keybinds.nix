@@ -149,6 +149,7 @@ in
       (nmap "<leader>uh" (toggle "inlay_hints") "Toggle Inlay Hints")
       (nmap "<leader>ug" (toggle "indent") "Toggle Indent Guides")
       (nmap "<leader>uD" (toggle "dim") "Toggle Dimming")
+      (nmap "<leader>up" "<cmd>lua require('precognition').toggle()<CR>" "Toggle Motion Hints")
       (nmap "<leader>un" (snacks "notifier.hide()") "Dismiss Notifications")
       (nmap "<leader>uC" (snacks "picker.colorschemes()") "Pick Colorscheme")
 
