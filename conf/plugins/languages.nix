@@ -13,6 +13,10 @@
     rust.enable = true;
     go.enable = true;
     css.enable = true;
+    markdown = {
+      enable = true;
+      extensions.markview-nvim.enable = true;
+    };
   };
 
 }
