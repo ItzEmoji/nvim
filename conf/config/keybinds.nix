@@ -563,5 +563,8 @@
       }
 
     ];
+    binds.whichKey = {
+      enable = true;
+    };
   };
 }
