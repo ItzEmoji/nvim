@@ -114,6 +114,11 @@ in
       # -- Buffers ------------------------------------------------------------
       (nmap "<leader>bd" (snacks "bufdelete()") "Delete Buffer")
 
+      # -- Folding (ufo) ------------------------------------------------------
+      # ufo keeps its own fold state, so the built-in zR/zM need redirecting.
+      (nmap "zR" "<cmd>lua require('ufo').openAllFolds()<CR>" "Open All Folds")
+      (nmap "zM" "<cmd>lua require('ufo').closeAllFolds()<CR>" "Close All Folds")
+
       # -- Clipboard (yanky) --------------------------------------------------
       # `y` and `p` behave exactly as before; yanky just records every yank
       # so the history below has something to show.
