@@ -20,6 +20,12 @@ let
 
   nmap = mkMap "n";
 
+  # `<Plug>` targets are themselves mappings, so they must be resolved
+  # recursively. `noremap = true` (nvf's default) would silently break them.
+  plugMap =
+    mode: key: plug: desc:
+    (mkMap mode key "<Plug>(${plug})" desc) // { noremap = false; };
+
   newsPopup = snacks "win({ file = vim.api.nvim_get_runtime_file('doc/news.txt', false)[1], width = 0.6, height = 0.6, wo = { spell = false, wrap = false, signcolumn = 'yes', statuscolumn = ' ', conceallevel = 3 } })";
 in
 {
@@ -107,6 +113,19 @@ in
 
       # -- Buffers ------------------------------------------------------------
       (nmap "<leader>bd" (snacks "bufdelete()") "Delete Buffer")
+
+      # -- Clipboard (yanky) --------------------------------------------------
+      # `y` and `p` behave exactly as before; yanky just records every yank
+      # so the history below has something to show.
+      (plugMap [ "n" "x" ] "y" "YankyYank" "Yank")
+      (plugMap [ "n" "x" ] "p" "YankyPutAfter" "Paste After")
+      (plugMap [ "n" "x" ] "P" "YankyPutBefore" "Paste Before")
+
+      # Straight after a paste, cycle it through earlier clipboard entries.
+      (plugMap "n" "<c-n>" "YankyNextEntry" "Cycle to Newer Clipboard Entry")
+      (plugMap "n" "<c-p>" "YankyPreviousEntry" "Cycle to Older Clipboard Entry")
+
+      (nmap "<leader>fy" "<cmd>YankyRingHistory<CR>" "Clipboard History")
 
       # -- Terminal & theme ---------------------------------------------------
       (nmap "<leader>tr" (snacks "terminal()") "Toggle Terminal")
