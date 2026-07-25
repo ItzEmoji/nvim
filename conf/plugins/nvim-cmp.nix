@@ -7,7 +7,6 @@
     ];
     sources = {
       path = "[path]";
-      luasnip = "[luasnip]";
       buffer = "[buffer]";
     };
   };
