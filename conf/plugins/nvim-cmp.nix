@@ -1,4 +1,4 @@
-{ lib, ... }:
+{ lib, pkgs, ... }:
 let
   inherit (lib.generators) mkLuaInline;
 in
@@ -6,13 +6,25 @@ in
   vim.autocomplete.nvim-cmp = {
     enable = true;
 
-    # These two are not decoration. nvf's `sources` default lists buffer and
-    # path, but a default is dropped as soon as any module defines the option,
-    # and the LSP module does exactly that. Without these entries the menu is
-    # left with nothing but nvim_lsp and treesitter.
+    # nvf pins cmp-buffer, cmp-path, cmp-treesitter, cmp-nvim-lsp and
+    # cmp-luasnip itself; anything beyond that comes from nixpkgs.
+    # cmp-spell would be the natural companion to vim.spellcheck, but nixpkgs
+    # marks it unfree, and pulling it in would force allowUnfree on every
+    # consumer of this flake.
+    sourcePlugins = [
+      pkgs.vimPlugins.cmp-nvim-lsp-signature-help
+    ];
+
+    # buffer and path are not decoration. nvf's `sources` default lists them,
+    # but a default is dropped as soon as any module defines the option, and
+    # the LSP module does exactly that. Without these entries the menu is left
+    # with nothing but nvim_lsp and treesitter.
     sources = {
       path = "[Path]";
       buffer = "[Buffer]";
+
+      # Parameter hints for the call being typed.
+      nvim_lsp_signature_help = "[Signature]";
     };
   };
 
