@@ -7,6 +7,26 @@
       bigfile.enabled = true;
       dashboard = {
         enabled = true;
+
+        # The header stays snacks' own block-ASCII "NEOVIM". What made the
+        # dashboard noisy was the key list: snacks ships eight entries by
+        # default (find text, recent files, config, restore session, lazy,
+        # quit). Two are enough to start from.
+        preset.keys = [
+          {
+            icon = " ";
+            key = "n";
+            desc = "New File";
+            action = ":ene | startinsert";
+          }
+          {
+            icon = " ";
+            key = "f";
+            desc = "Find File";
+            action = ":lua Snacks.dashboard.pick('files')";
+          }
+        ];
+
         sections = [
           { section = "header"; }
           {
