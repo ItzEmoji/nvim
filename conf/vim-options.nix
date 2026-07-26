@@ -6,8 +6,8 @@
       tabstop = 2;
       softtabstop = 2;
 
-      # Share yanks and pastes with the system clipboard.
-      clipboard = "unnamedplus";
+      # Clipboard lives in clipboard.nix; vim.clipboard.registers owns this
+      # option, so setting it here too would be a conflicting definition.
 
       # Keep some context visible above and below the cursor.
       scrolloff = 8;

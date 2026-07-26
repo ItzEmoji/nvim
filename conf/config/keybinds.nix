@@ -37,6 +37,13 @@ let
     mode: key: plug: desc:
     (mkMap mode key "<Plug>(${plug})" desc) // { noremap = false; };
 
+  # Same as plugMap, but runs the `<Plug>` target against an explicit register.
+  # Yanky reads `v:register`, so prefixing `"+` sends the operation to the
+  # system clipboard while the bare mappings stay on Neovim's own registers.
+  plugMapReg =
+    mode: key: reg: plug: desc:
+    (mkMap mode key ''"${reg}<Plug>(${plug})'' desc) // { noremap = false; };
+
   newsPopup = snacks "win({ file = vim.api.nvim_get_runtime_file('doc/news.txt', false)[1], width = 0.6, height = 0.6, wo = { spell = false, wrap = false, signcolumn = 'yes', statuscolumn = ' ', conceallevel = 3 } })";
 in
 {
@@ -121,11 +128,20 @@ in
       (nmap "zM" "<cmd>lua require('ufo').closeAllFolds()<CR>" "Close All Folds")
 
       # -- Clipboard (yanky) --------------------------------------------------
-      # `y` and `p` behave exactly as before; yanky just records every yank
-      # so the history below has something to show.
+      # `y` and `p` behave exactly as before, on Neovim's own registers, so
+      # deletes and changes never clobber the system clipboard.
       (plugMap [ "n" "x" ] "y" "YankyYank" "Yank")
       (plugMap [ "n" "x" ] "p" "YankyPutAfter" "Paste After")
       (plugMap [ "n" "x" ] "P" "YankyPutBefore" "Paste Before")
+
+      # The leader variants are the only things that cross into the system
+      # clipboard. Needs a provider on PATH — see conf/clipboard.nix.
+      (plugMapReg [ "n" "x" ] "<leader>y" "+" "YankyYank" "Yank to System Clipboard")
+      (plugMapReg [ "n" "x" ] "<leader>p" "+" "YankyPutAfter" "Paste After from System Clipboard")
+      (plugMapReg [ "n" "x" ] "<leader>P" "+" "YankyPutBefore" "Paste Before from System Clipboard")
+
+      # `Y` yanks to end of line, so <leader>Y is the natural counterpart.
+      (mkMap "n" "<leader>Y" ''"+y$'' "Yank to End of Line to System Clipboard")
 
       # Straight after a paste, cycle it through earlier clipboard entries.
       (plugMap "n" "<c-n>" "YankyNextEntry" "Cycle to Newer Clipboard Entry")
