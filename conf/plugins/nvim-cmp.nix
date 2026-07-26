@@ -5,12 +5,14 @@ in
 {
   vim.autocomplete.nvim-cmp = {
     enable = true;
-    sourcePlugins = [
-      "cmp-path"
-    ];
+
+    # These two are not decoration. nvf's `sources` default lists buffer and
+    # path, but a default is dropped as soon as any module defines the option,
+    # and the LSP module does exactly that. Without these entries the menu is
+    # left with nothing but nvim_lsp and treesitter.
     sources = {
-      path = "[path]";
-      buffer = "[buffer]";
+      path = "[Path]";
+      buffer = "[Buffer]";
     };
   };
 
