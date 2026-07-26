@@ -26,6 +26,15 @@ in
       # Parameter hints for the call being typed.
       nvim_lsp_signature_help = "[Signature]";
     };
+
+    # nvf's `mappings` options take a single key each, so <Tab>/<S-Tab> cannot
+    # simply grow a second binding. Adding to setupOpts.mapping instead, which
+    # merges with the table nvf builds from those options. `cmp` is a local in
+    # the generated setup block, so it is in scope here.
+    setupOpts.mapping = {
+      "<C-j>" = mkLuaInline "cmp.mapping.select_next_item()";
+      "<C-k>" = mkLuaInline "cmp.mapping.select_prev_item()";
+    };
   };
 
   vim.augroups = [ { name = "nvf_cmp_lsp"; } ];
