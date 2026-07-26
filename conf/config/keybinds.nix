@@ -1,5 +1,16 @@
-{ pkgs, lib, ... }:
+{
+  pkgs,
+  lib,
+  enabledLanguages,
+  ...
+}:
 let
+  inherit (lib.lists) optionals;
+
+  # Trouble ships with the language layer, so with no languages enabled its
+  # `:Trouble` command does not exist and these binds would fail with E492.
+  hasLanguages = enabledLanguages != [ ];
+
   # `<cmd>lua require('snacks').<call><CR>` — the shape of nearly every bind below.
   snacks = call: "<cmd>lua require('snacks').${call}<CR>";
 
@@ -100,16 +111,6 @@ in
 
       # -- Code ---------------------------------------------------------------
       (nmap "<leader>cR" (snacks "rename.rename_file()") "Rename File")
-      (nmap "<leader>cs" "<cmd>Trouble symbols toggle focus=false<cr>" "Symbol Outline (Trouble)")
-      (nmap "<leader>cl" "<cmd>Trouble lsp toggle focus=false win.position=right<cr>"
-        "LSP Definitions & References (Trouble)"
-      )
-
-      # -- Trouble / diagnostics ----------------------------------------------
-      (nmap "<leader>xx" "<cmd>Trouble diagnostics toggle<cr>" "Diagnostics (Workspace)")
-      (nmap "<leader>xX" "<cmd>Trouble diagnostics toggle filter.buf=0<cr>" "Diagnostics (Buffer)")
-      (nmap "<leader>xL" "<cmd>Trouble loclist toggle<cr>" "Location List")
-      (nmap "<leader>xQ" "<cmd>Trouble qflist toggle<cr>" "Quickfix List")
 
       # -- Buffers ------------------------------------------------------------
       (nmap "<leader>bd" (snacks "bufdelete()") "Delete Buffer")
@@ -164,6 +165,19 @@ in
       (nmap "<leader>S" (snacks "scratch.select()") "Select Scratch Buffer")
       (nmap "<leader>N" newsPopup "Neovim News")
       (nmap "<leader>r" ":source ~/.config/nvim/init.lua<CR>" "Reload Config")
+    ]
+    ++ optionals hasLanguages [
+      # -- Code (Trouble) -----------------------------------------------------
+      (nmap "<leader>cs" "<cmd>Trouble symbols toggle focus=false<cr>" "Symbol Outline (Trouble)")
+      (nmap "<leader>cl" "<cmd>Trouble lsp toggle focus=false win.position=right<cr>"
+        "LSP Definitions & References (Trouble)"
+      )
+
+      # -- Trouble / diagnostics ----------------------------------------------
+      (nmap "<leader>xx" "<cmd>Trouble diagnostics toggle<cr>" "Diagnostics (Workspace)")
+      (nmap "<leader>xX" "<cmd>Trouble diagnostics toggle filter.buf=0<cr>" "Diagnostics (Buffer)")
+      (nmap "<leader>xL" "<cmd>Trouble loclist toggle<cr>" "Location List")
+      (nmap "<leader>xQ" "<cmd>Trouble qflist toggle<cr>" "Quickfix List")
     ];
 
     binds.whichKey = {
@@ -179,6 +193,8 @@ in
         "<leader>s" = "Search / Grep";
         "<leader>t" = "Terminal / Theme";
         "<leader>u" = "UI Toggles";
+      }
+      // lib.optionalAttrs hasLanguages {
         "<leader>x" = "Diagnostics / Lists";
       };
     };
