@@ -9,6 +9,11 @@
 import {mkdirSync, readFileSync, rmSync, writeFileSync} from 'node:fs';
 import {basename, join} from 'node:path';
 import {escapeMdx, escapeMdxDescription, renderValueBlock, toNixText, type OptValue} from './value';
+import {
+  renderKeybindingsPage,
+  type Keymap,
+  type WhichKeyRegister,
+} from './keymaps';
 
 const DEFAULT_INLINE_THRESHOLD = 80;
 
@@ -31,6 +36,13 @@ const TYPE_COLLAPSE_THRESHOLD = 200;
 // Resolved relative to this file's own location, not the process cwd, so the
 // output lands in the same place regardless of where the renderer is invoked from.
 const OUT_DIR = join(import.meta.dir, '..', 'docs', 'reference', 'options');
+const KEYBINDINGS_PAGE = join(
+  import.meta.dir,
+  '..',
+  'docs',
+  'reference',
+  'keybindings.mdx',
+);
 
 /** `conf/plugins/nvim-cmp.nix` -> `plugins-nvim-cmp` */
 export function slugForSource(sourceFile: string): string {
@@ -194,6 +206,35 @@ export function writeSite(input: OptionsFile, outDir: string): string[] {
   return written;
 }
 
+/** Looks up one option's evaluated value by name. */
+function valueOf(input: OptionsFile, name: string): OptValue | undefined {
+  return input.options.find((option) => option.name === name)?.value;
+}
+
+/**
+ * Writes the single keybindings page from `vim.keymaps`, labelled with the
+ * which-key group names. Returns false when the config sets no keymaps, so the
+ * caller can skip the page rather than emit an empty one.
+ */
+export function writeKeybindings(input: OptionsFile, outPath: string): boolean {
+  const keymaps = valueOf(input, 'vim.keymaps');
+  if (!Array.isArray(keymaps) || keymaps.length === 0) return false;
+
+  const raw = valueOf(input, 'vim.binds.whichKey.register');
+  const register: WhichKeyRegister = {};
+  if (raw && typeof raw === 'object' && !Array.isArray(raw)) {
+    for (const [prefix, label] of Object.entries(raw)) {
+      if (typeof label === 'string') register[prefix] = label;
+    }
+  }
+
+  writeFileSync(
+    outPath,
+    renderKeybindingsPage(keymaps as unknown as Keymap[], register),
+  );
+  return true;
+}
+
 if (import.meta.main) {
   const inputPath = process.argv[2];
   if (!inputPath) {
@@ -209,4 +250,10 @@ if (import.meta.main) {
 
   const written = writeSite(input, OUT_DIR);
   console.log(`wrote ${written.length} files to ${OUT_DIR}`);
+
+  if (writeKeybindings(input, KEYBINDINGS_PAGE)) {
+    console.log(`wrote ${KEYBINDINGS_PAGE}`);
+  } else {
+    console.log('no keymaps set; skipped the keybindings page');
+  }
 }

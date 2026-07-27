@@ -3,6 +3,9 @@ import type {SidebarsConfig} from '@docusaurus/plugin-content-docs';
 const sidebars: SidebarsConfig = {
   docsSidebar: [
     'intro',
+    // Sits above the guides deliberately: "what are the keys?" is the question
+    // this site gets asked most, and it is one generated page.
+    'reference/keybindings',
     {
       type: 'category',
       label: 'Guides',
