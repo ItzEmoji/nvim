@@ -46,6 +46,10 @@ jobs:
         working-directory: docs
         run: bun test
 
+      - name: Typecheck the renderer
+        working-directory: docs
+        run: bun run typecheck
+
       - name: Extract options from the configuration
         run: nix build '.#options-json' --out-link docs/options.json
 

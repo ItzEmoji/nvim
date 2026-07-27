@@ -104,7 +104,7 @@ export function toNixText(v: OptValue, indent = 0): string {
  * markdown containing a ```-fenced snippet).
  */
 function fenceFor(content: string): string {
-  const runs = content.match(/`+/g) ?? [];
+  const runs: string[] = content.match(/`+/g) ?? [];
   const longestRun = runs.reduce((max, run) => Math.max(max, run.length), 0);
   return '`'.repeat(Math.max(3, longestRun + 1));
 }
