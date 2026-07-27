@@ -7,6 +7,14 @@ on:
       - edited
       - synchronize
       - reopened
+  # Cloudflare deploys the site on every push to main, so the drift check must also
+  # run there: a direct push, or a PR merged after its base moved, can otherwise ship
+  # a stale site with nothing to catch it. `nix-checks` shares this `on:` block too,
+  # but `nix flake check` has no PR-specific behaviour, so also running it on push to
+  # main is harmless.
+  push:
+    branches:
+      - main
 
 permissions:
   contents: read
@@ -59,6 +67,9 @@ jobs:
 
       - name: Fail if the committed reference is stale
         run: |
+          # Safe to stage everything under this path: this is a throwaway CI
+          # checkout and nothing downstream reads git state, so `git add -A` here
+          # can't leak unrelated local changes into a commit.
           git add -A -- docs/docs/reference/options
           if ! git diff --cached --exit-code -- docs/docs/reference/options; then
             echo "::error::The option reference is out of date. Run 'bun run gen' in docs/ and commit the result."
