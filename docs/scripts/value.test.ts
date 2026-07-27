@@ -1,5 +1,5 @@
 import {describe, expect, test} from 'bun:test';
-import {toNixText, renderValueBlock, escapeMdx} from './value';
+import {toNixText, renderValueBlock, escapeMdx, escapeMdxDescription} from './value';
 
 describe('toNixText', () => {
   test('renders booleans', () => {
@@ -132,6 +132,48 @@ describe('toNixText', () => {
     expect(toNixText({__type: 'unknown'})).toBe('<unrepresentable>');
   });
 
+  test('renders an attrset with an unrecognized __type as an ordinary attrset', () => {
+    // A real nvf `setupOpts` attrset could legitimately carry a literal `__type` key.
+    // Only the extractor's own known tags should be treated as tagged forms —
+    // anything else must render its data, not `<unrepresentable>`.
+    expect(toNixText({__type: 'setupOpts', foo: true})).toBe(
+      '{\n  __type = "setupOpts";\n  foo = true;\n}',
+    );
+  });
+
+  test('escapes a literal \'\'\' (three quotes) inside lua code without corrupting it', () => {
+    const expected = [
+      '{',
+      "  sel = mkLuaInline ''",
+      "    abc''''def",
+      "  '';",
+      '}',
+    ].join('\n');
+    expect(toNixText({sel: {__type: 'lua', code: "abc'''def"}})).toBe(expected);
+  });
+
+  test("escapes a literal ''\${ inside lua code without corrupting it", () => {
+    const expected = [
+      '{',
+      "  sel = mkLuaInline ''",
+      "    abc'''''\${def",
+      "  '';",
+      '}',
+    ].join('\n');
+    expect(toNixText({sel: {__type: 'lua', code: "abc''${def"}})).toBe(expected);
+  });
+
+  test('escapes a literal $${ inside lua code without corrupting it', () => {
+    const expected = [
+      '{',
+      "  sel = mkLuaInline ''",
+      "    abc$''\${def",
+      "  '';",
+      '}',
+    ].join('\n');
+    expect(toNixText({sel: {__type: 'lua', code: 'abc$${def'}})).toBe(expected);
+  });
+
   test('renders a nixExpression tag as its raw code, unquoted and unescaped', () => {
     expect(toNixText({__type: 'nixExpression', code: 'pkgs.lib.mkDefault true'})).toBe(
       'pkgs.lib.mkDefault true',
@@ -158,5 +200,23 @@ describe('escapeMdx', () => {
 
   test('leaves ordinary prose untouched', () => {
     expect(escapeMdx('Whether to enable Noice.')).toBe('Whether to enable Noice.');
+  });
+});
+
+describe('escapeMdxDescription', () => {
+  test('leaves braces inside a backtick span untouched', () => {
+    expect(escapeMdxDescription('Set via `{ foo = "bar"; }`.')).toBe(
+      'Set via `{ foo = "bar"; }`.',
+    );
+  });
+
+  test('escapes braces outside any backtick span', () => {
+    expect(escapeMdxDescription('Use {a} or <b>.')).toBe('Use \\{a\\} or \\<b\\>.');
+  });
+
+  test('escapes prose braces but leaves an adjacent code span untouched', () => {
+    expect(escapeMdxDescription('Wrap {value} in `{foo = "bar";}` for Lua.')).toBe(
+      'Wrap \\{value\\} in `{foo = "bar";}` for Lua.',
+    );
   });
 });

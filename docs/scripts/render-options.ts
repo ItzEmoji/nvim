@@ -8,7 +8,7 @@
  */
 import {mkdirSync, readFileSync, rmSync, writeFileSync} from 'node:fs';
 import {basename, join} from 'node:path';
-import {escapeMdx, renderValueBlock, type OptValue} from './value';
+import {escapeMdx, escapeMdxDescription, renderValueBlock, toNixText, type OptValue} from './value';
 
 const DEFAULT_INLINE_THRESHOLD = 80;
 
@@ -28,7 +28,9 @@ export interface OptionsFile {
 
 const REPO_BLOB = 'https://github.com/ItzEmoji/nvim/blob/main';
 const TYPE_COLLAPSE_THRESHOLD = 200;
-const OUT_DIR = 'docs/reference/options';
+// Resolved relative to this file's own location, not the process cwd, so the
+// output lands in the same place regardless of where the renderer is invoked from.
+const OUT_DIR = join(import.meta.dir, '..', 'docs', 'reference', 'options');
 
 /** `conf/plugins/nvim-cmp.nix` -> `plugins-nvim-cmp` */
 export function slugForSource(sourceFile: string): string {
@@ -75,8 +77,12 @@ function renderDefault(value: OptValue): string {
     (typeof value === 'string' && !value.includes('\n') && value.length <= DEFAULT_INLINE_THRESHOLD);
 
   if (isSimpleScalar) {
-    const text = typeof value === 'string' ? value : String(value);
-    return `<span class="option-meta__item"><strong>Default:</strong> <code>${escapeMdx(text)}</code></span>`;
+    // Route scalars through the same Nix-quoting `toNixText` uses for `Value:`, so a
+    // string default like `"<leader>j"` is quoted (matching Value), an empty string
+    // is visible as `""` rather than an invisible empty `<code>`, and the string
+    // `"false"` stays distinguishable from the boolean `false`.
+    const text = escapeMdx(toNixText(value));
+    return `<span class="option-meta__item"><strong>Default:</strong> <code>${text}</code></span>`;
   }
 
   return [
@@ -112,7 +118,7 @@ export function renderOption(entry: OptionEntry): string {
   const parts: string[] = [`### \`${entry.name}\``, ''];
 
   if (entry.description) {
-    parts.push(escapeMdx(entry.description), '');
+    parts.push(escapeMdxDescription(entry.description), '');
   }
 
   const meta: string[] = ['<div class="option-meta">', ''];
@@ -141,7 +147,10 @@ export function renderPage(
   position: number,
 ): string {
   const title = titleForSource(sourceFile);
-  const sorted = [...entries].sort((a, b) => a.name.localeCompare(b.name));
+  // Bytewise, not locale-aware: this must agree with the extractor's own bytewise
+  // `<` ordering (nix/extract-options.nix), since reproducible output is what the
+  // CI drift check depends on, and `localeCompare` is locale- and ICU-dependent.
+  const sorted = [...entries].sort((a, b) => (a.name < b.name ? -1 : a.name > b.name ? 1 : 0));
   const count = sorted.length;
   const noun = count === 1 ? 'option' : 'options';
 

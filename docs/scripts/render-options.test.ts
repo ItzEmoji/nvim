@@ -73,6 +73,14 @@ describe('renderOption', () => {
     expect(renderOption(tricky)).toContain('Use \\{a\\} or \\<b\\>.');
   });
 
+  test('does not escape braces inside an inline code span in the description', () => {
+    const tricky: OptionEntry = {
+      ...noice,
+      description: 'Set via `{ foo = "bar"; }` in your config.',
+    };
+    expect(renderOption(tricky)).toContain('Set via `{ foo = "bar"; }` in your config.');
+  });
+
   test('collapses a very long type behind a details element', () => {
     const long: OptionEntry = {...noice, type: 'one of ' + 'x'.repeat(300)};
     const out = renderOption(long);
@@ -89,6 +97,27 @@ describe('renderOption', () => {
     const boolDefault: OptionEntry = {...noice, default: false};
     expect(renderOption(boolDefault)).toContain(
       '<strong>Default:</strong> <code>false</code>',
+    );
+  });
+
+  test('quotes a scalar string default the same way Value does', () => {
+    const strDefault: OptionEntry = {...noice, default: '<leader>j'};
+    expect(renderOption(strDefault)).toContain(
+      '<strong>Default:</strong> <code>"\\<leader\\>j"</code>',
+    );
+  });
+
+  test('renders an empty string default visibly, not as an invisible empty code span', () => {
+    const emptyDefault: OptionEntry = {...noice, default: ''};
+    expect(renderOption(emptyDefault)).toContain(
+      '<strong>Default:</strong> <code>""</code>',
+    );
+  });
+
+  test('distinguishes the string "false" from the boolean false', () => {
+    const stringFalse: OptionEntry = {...noice, default: 'false'};
+    expect(renderOption(stringFalse)).toContain(
+      '<strong>Default:</strong> <code>"false"</code>',
     );
   });
 

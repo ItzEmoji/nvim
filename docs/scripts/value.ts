@@ -24,8 +24,28 @@ export type OptValue =
 
 const IDENTIFIER = /^[A-Za-z_][A-Za-z0-9_'-]*$/;
 
+// The only `__type` values the extractor ever emits (see nix/extract-options.nix). A
+// real nvf attrset that happens to carry a literal `__type` key (e.g. a user's
+// `setupOpts`) must not be mistaken for one of these tagged forms, or its data is
+// silently discarded and replaced with `<unrepresentable>`.
+const KNOWN_TAGS = new Set([
+  'lua',
+  'derivation',
+  'nixExpression',
+  'function',
+  'error',
+  'elided',
+  'unknown',
+]);
+
 function isTagged(v: OptValue): v is Tagged {
-  return typeof v === 'object' && v !== null && !Array.isArray(v) && '__type' in v;
+  return (
+    typeof v === 'object' &&
+    v !== null &&
+    !Array.isArray(v) &&
+    typeof (v as {__type?: unknown}).__type === 'string' &&
+    KNOWN_TAGS.has((v as {__type: string}).__type)
+  );
 }
 
 function quoteString(s: string): string {
@@ -129,4 +149,15 @@ export function renderValueBlock(v: OptValue): string {
 /** Escapes characters MDX would otherwise interpret as JSX. */
 export function escapeMdx(s: string): string {
   return s.replace(/[{}<>]/g, (c) => `\\${c}`);
+}
+
+/**
+ * Escapes MDX-hostile characters in a description, but only in the segments
+ * outside inline backtick spans. MDX does not interpret `{}`/`<>` inside a
+ * backtick-fenced code span, so escaping them there would render the literal
+ * backslashes to the reader instead of being invisible.
+ */
+export function escapeMdxDescription(s: string): string {
+  const parts = s.split(/(`+[^`]*`+)/);
+  return parts.map((part, i) => (i % 2 === 1 ? part : escapeMdx(part))).join('');
 }

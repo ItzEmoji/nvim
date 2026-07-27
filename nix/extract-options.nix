@@ -27,6 +27,10 @@ let
   # Recursively convert an evaluated value into JSON-safe data.
   serialize =
     depth: v:
+    # Clamp recursion depth: some evaluated values (e.g. a module's internal `config`
+    # sharing structure with itself, or a plugin's setup options wrapping arbitrary
+    # attrsets) can be very deep or self-referential, and without a limit this would
+    # risk a stack overflow rather than a clean `{__type = "elided";}` marker.
     if depth > 12 then
       { __type = "elided"; }
     else if v == null || builtins.isBool v || builtins.isInt v || builtins.isFloat v then
@@ -34,6 +38,12 @@ let
     else if builtins.isString v then
       v
     else if builtins.isPath v then
+      # Hazard: `toString` on a path literal copies it into the Nix store and yields
+      # `/nix/store/<hash>-source/...`. No option in `conf/` uses a path literal as a
+      # value or default today, but the moment one does, that store hash would land
+      # in committed MDX and make the drift check flap on completely unrelated
+      # changes (anything that alters the store path's hash). Not fixed here — this
+      # just records the hazard for whoever adds one.
       toString v
     else if builtins.isFunction v then
       { __type = "function"; }
