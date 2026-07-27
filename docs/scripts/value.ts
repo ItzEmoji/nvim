@@ -10,7 +10,8 @@ type Tagged =
   | {__type: 'function'}
   | {__type: 'error'}
   | {__type: 'elided'}
-  | {__type: 'unknown'};
+  | {__type: 'unknown'}
+  | {__type: 'nixExpression'; code: string};
 
 export type OptValue =
   | null
@@ -82,6 +83,8 @@ export function toNixText(v: OptValue, indent = 0): string {
         return '<value could not be evaluated>';
       case 'elided':
         return '<elided: too deeply nested>';
+      case 'nixExpression':
+        return v.code;
       default:
         return '<unrepresentable>';
     }
@@ -95,12 +98,32 @@ export function toNixText(v: OptValue, indent = 0): string {
   return `{\n${entries.join('\n')}\n${pad}}`;
 }
 
+/**
+ * Picks a backtick fence long enough that it cannot be closed early by a run of
+ * backticks already present in the content (e.g. a `defaultText` that is itself
+ * markdown containing a ```-fenced snippet).
+ */
+function fenceFor(content: string): string {
+  const runs = content.match(/`+/g) ?? [];
+  const longestRun = runs.reduce((max, run) => Math.max(max, run.length), 0);
+  return '`'.repeat(Math.max(3, longestRun + 1));
+}
+
 /** Wraps a value in the appropriate fenced code block. */
 export function renderValueBlock(v: OptValue): string {
   if (isTagged(v) && v.__type === 'lua') {
-    return ['```lua', v.code.trimEnd(), '```'].join('\n');
+    const code = v.code.trimEnd();
+    const fence = fenceFor(code);
+    return [`${fence}lua`, code, fence].join('\n');
   }
-  return ['```nix', toNixText(v), '```'].join('\n');
+  if (isTagged(v) && v.__type === 'nixExpression') {
+    const code = v.code.trimEnd();
+    const fence = fenceFor(code);
+    return [`${fence}nix`, code, fence].join('\n');
+  }
+  const text = toNixText(v);
+  const fence = fenceFor(text);
+  return [`${fence}nix`, text, fence].join('\n');
 }
 
 /** Escapes characters MDX would otherwise interpret as JSX. */

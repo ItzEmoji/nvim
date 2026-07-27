@@ -1,9 +1,14 @@
 # Extracts every nvf option that this repository's `conf/` files define, along with
 # its evaluated value, into a single JSON file.
 #
-# Values cross into the renderer as structured data, never as pre-rendered text:
-# forms with no JSON equivalent (Lua snippets, derivations, functions) are tagged
-# with a `__type` marker so the renderer can decide how to present them.
+# Values and defaults cross into the renderer as structured data, never as
+# pre-rendered text: forms with no JSON equivalent (Lua snippets, derivations,
+# functions) are tagged with a `__type` marker so the renderer can decide how to
+# present them. `default` follows the same shape as `value`, with one addition: when
+# the option carries a `defaultText` (Nix source text describing the default, e.g.
+# `pkgs.lib.mkDefault true`), it is tagged `{"__type":"nixExpression","code":"..."}`
+# rather than evaluated, since it is already meant to be read as Nix source. When an
+# option has neither `defaultText` nor `default`, the field is `null`.
 {
   lib,
   pkgs,
@@ -91,12 +96,12 @@ let
     description = textOf (opt.description or null);
     default =
       if opt ? defaultText then
-        textOf opt.defaultText
-      else if opt ? default then
         let
-          d = safeSerialize opt.default;
+          t = textOf opt.defaultText;
         in
-        if builtins.isString d then d else builtins.toJSON d
+        if t == null then null else { __type = "nixExpression"; code = t; }
+      else if opt ? default then
+        safeSerialize opt.default
       else
         null;
     value = safeSerialize opt.value;

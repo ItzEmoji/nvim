@@ -131,6 +131,12 @@ describe('toNixText', () => {
   test('renders the unknown tag as unrepresentable', () => {
     expect(toNixText({__type: 'unknown'})).toBe('<unrepresentable>');
   });
+
+  test('renders a nixExpression tag as its raw code, unquoted and unescaped', () => {
+    expect(toNixText({__type: 'nixExpression', code: 'pkgs.lib.mkDefault true'})).toBe(
+      'pkgs.lib.mkDefault true',
+    );
+  });
 });
 
 describe('renderValueBlock', () => {

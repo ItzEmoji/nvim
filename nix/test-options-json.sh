@@ -47,4 +47,15 @@ check "nvim-ufo lua code preserved" "true" \
 check "cmp sourcePlugins contains a tagged derivation" "true" \
   "$(jq -r '[.options[] | select(.name=="vim.autocomplete.nvim-cmp.sourcePlugins") | .value[] | select(type=="object" and .__type=="derivation")] | length > 0' "$json")"
 
+# `default` must be structured data, not a pre-serialized JSON string.
+check "noice.enable default is a real boolean, not a string" "boolean" \
+  "$(jq -r '.options[] | select(.name=="vim.ui.noice.enable") | .default | type' "$json")"
+
+# A `defaultText` must be tagged as a nixExpression carrying the raw Nix source, not
+# stringified or evaluated.
+check "luasnip loaders default is tagged nixExpression" "nixExpression" \
+  "$(jq -r '.options[] | select(.name=="vim.snippets.luasnip.loaders") | .default.__type' "$json")"
+check "luasnip loaders default code preserved" "true" \
+  "$(jq -r '.options[] | select(.name=="vim.snippets.luasnip.loaders") | .default.code | contains("lazy_load")' "$json")"
+
 exit "$fail"

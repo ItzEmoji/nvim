@@ -10,11 +10,13 @@ import {mkdirSync, readFileSync, rmSync, writeFileSync} from 'node:fs';
 import {basename, join} from 'node:path';
 import {escapeMdx, renderValueBlock, type OptValue} from './value';
 
+const DEFAULT_INLINE_THRESHOLD = 80;
+
 export interface OptionEntry {
   name: string;
   type: string | null;
   description: string | null;
-  default: string | null;
+  default: OptValue;
   value: OptValue;
   sourceFiles: string[];
 }
@@ -59,38 +61,29 @@ export function groupBySource(options: OptionEntry[]): Map<string, OptionEntry[]
 // block is separated from its neighbours by a blank line.
 
 /**
- * Renders the "Default:" metadata item. Most defaults are short scalars that fit
- * inline as `<code>...</code>`. Some nvf options (e.g. Lua loader snippets) carry a
- * `defaultText` that is itself a fenced markdown code block; splicing that verbatim
- * into an inline `<code>` span breaks MDX, because the embedded ``` fence terminates
- * the surrounding paragraph before the closing `</code>` is reached. Detect that case
- * and render the fenced block on its own line instead, matching the pattern already
- * used for oversized types.
+ * Renders the "Default:" metadata item. A simple scalar default (boolean, number, or
+ * a short single-line string) fits inline as `<code>...</code>`. Anything else —
+ * lists, attrsets, Lua snippets, Nix expressions carried over from `defaultText`,
+ * derivations, and so on — renders as its own fenced block below the label, via the
+ * same structured renderer used for `Value:`, matching the pattern already used for
+ * oversized types.
  */
-function renderDefault(defaultText: string): string {
-  const trimmed = defaultText.trim();
-  const fenceMatch = trimmed.match(/^```(\S*)\n([\s\S]*?)\n```$/);
-  if (fenceMatch) {
-    const lang = fenceMatch[1] || 'text';
-    const code = fenceMatch[2];
-    return [
-      '<span class="option-meta__item"><strong>Default:</strong></span>',
-      '',
-      `\`\`\`${lang}`,
-      code,
-      '```',
-    ].join('\n');
+function renderDefault(value: OptValue): string {
+  const isSimpleScalar =
+    typeof value === 'boolean' ||
+    typeof value === 'number' ||
+    (typeof value === 'string' && !value.includes('\n') && value.length <= DEFAULT_INLINE_THRESHOLD);
+
+  if (isSimpleScalar) {
+    const text = typeof value === 'string' ? value : String(value);
+    return `<span class="option-meta__item"><strong>Default:</strong> <code>${escapeMdx(text)}</code></span>`;
   }
-  if (trimmed.includes('\n')) {
-    return [
-      '<span class="option-meta__item"><strong>Default:</strong></span>',
-      '',
-      '```',
-      trimmed,
-      '```',
-    ].join('\n');
-  }
-  return `<span class="option-meta__item"><strong>Default:</strong> <code>${escapeMdx(defaultText)}</code></span>`;
+
+  return [
+    '<span class="option-meta__item"><strong>Default:</strong></span>',
+    '',
+    renderValueBlock(value),
+  ].join('\n');
 }
 
 function renderType(type: string | null): string {
@@ -167,6 +160,7 @@ export function renderPage(
     `This page is generated from a Nix evaluation of the configuration. It lists the ` +
       `${count} ${noun} that [\`${sourceFile}\`](${REPO_BLOB}/${sourceFile}) sets.`,
     '',
+    '',
   ].join('\n');
 
   return header + sorted.map(renderOption).join('\n');
@@ -181,12 +175,6 @@ export function writeSite(input: OptionsFile, outDir: string): string[] {
   mkdirSync(outDir, {recursive: true});
 
   const written: string[] = [];
-
-  writeFileSync(
-    join(outDir, '_category_.json'),
-    `${JSON.stringify({label: 'By source file', position: 2}, null, 2)}\n`,
-  );
-  written.push(join(outDir, '_category_.json'));
 
   sourceFiles.forEach((sourceFile, index) => {
     const path = join(outDir, `${slugForSource(sourceFile)}.mdx`);

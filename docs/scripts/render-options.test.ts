@@ -85,6 +85,42 @@ describe('renderOption', () => {
     expect(renderOption(noDefault)).not.toContain('Default');
   });
 
+  test('renders a scalar default inline as code', () => {
+    const boolDefault: OptionEntry = {...noice, default: false};
+    expect(renderOption(boolDefault)).toContain(
+      '<strong>Default:</strong> <code>false</code>',
+    );
+  });
+
+  test('renders a structured (list) default as a fenced block', () => {
+    const listDefault: OptionEntry = {...noice, default: ['a', 'b']};
+    const out = renderOption(listDefault);
+    expect(out).toContain('<strong>Default:</strong></span>');
+    expect(out).toContain('```nix\n[\n  "a"\n  "b"\n]\n```');
+  });
+
+  test('renders a structured (attrset) default as a fenced block', () => {
+    const attrsDefault: OptionEntry = {...noice, default: {mode: 'a'}};
+    const out = renderOption(attrsDefault);
+    expect(out).toContain('<strong>Default:</strong></span>');
+    expect(out).toContain('```nix\n{\n  mode = "a";\n}\n```');
+  });
+
+  test('renders a nixExpression default as its raw code in a fenced block', () => {
+    const exprDefault: OptionEntry = {
+      ...noice,
+      default: {__type: 'nixExpression', code: 'pkgs.lib.mkDefault true'},
+    };
+    const out = renderOption(exprDefault);
+    expect(out).toContain('<strong>Default:</strong></span>');
+    expect(out).toContain('```nix\npkgs.lib.mkDefault true\n```');
+  });
+
+  test('renders nothing for a null default', () => {
+    const nullDefault: OptionEntry = {...noice, default: null};
+    expect(renderOption(nullDefault)).not.toContain('Default');
+  });
+
   test('links to the defining file on GitHub', () => {
     expect(renderOption(noice)).toContain(
       'https://github.com/ItzEmoji/nvim/blob/main/conf/config/ui.nix',
