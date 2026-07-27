@@ -18,9 +18,9 @@ If populated, this option will set vim options in the built \{option\}`luaConfig
 after `basic` and before `pluginConfigs` DAG entries.
 
 ::: \{.note\}
-`\{foo = "bar";\}` will set `vim.opt.foo` to "bar", where the type of
+`{foo = "bar";}` will set `vim.opt.foo` to "bar", where the type of
 `bar` in the resulting Lua value will be inferred from the type of the
-value in the `\{name = value;\}` pair passed to the option.
+value in the `{name = value;}` pair passed to the option.
 :::
 
 
@@ -92,7 +92,7 @@ Set the case sensitivity of search
 
 <span class="option-meta__item"><strong>Type:</strong> <code>one of "ignore", "smart", "sensitive"</code></span>
 
-<span class="option-meta__item"><strong>Default:</strong> <code>sensitive</code></span>
+<span class="option-meta__item"><strong>Default:</strong> <code>"sensitive"</code></span>
 
 <span class="option-meta__item"><strong>Defined in:</strong> [`conf/vim-options.nix`](https://github.com/ItzEmoji/nvim/blob/main/conf/vim-options.nix)</span>
 
