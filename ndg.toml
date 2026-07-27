@@ -1,0 +1,42 @@
+# ndg renders the generated option reference as an alternative to the
+# Docusaurus site under docs/. Both are driven by the same Nix evaluation.
+#
+# Build it with:
+#
+#   nix develop -c bash -c 'cd docs && bun run ndg:options'
+#   nix develop -c ndg -c ndg.toml html
+#
+# Note `-c` is a global flag and goes *before* the `html` subcommand.
+#
+# `docs/options-ndg.json` is generated and gitignored; regenerate it whenever
+# anything under conf/ changes.
+
+# The option data. This is *not* a plain nixosOptionsDoc dump: it is produced by
+# docs/scripts/render-ndg-options.ts from our own extractor, so each option
+# carries the value this configuration sets and the conf/ file that set it.
+# A plain nixosOptionsDoc would document all 2448 options nvf declares, with no
+# values, and with declarations pointing into nvf's store output.
+module_options = "docs/options-ndg.json"
+
+# There is deliberately no `input_dir`. The prose under docs/docs/ is MDX: it
+# contains JSX comments and raw elements that ndg's CommonMark parser renders as
+# literal text. Pointed at docs/ it also swept node_modules and the scratch
+# specs. ndg runs options-only, which it supports.
+
+output_dir = "build/ndg"
+
+title = "nvf Neovim Config — Options"
+footer_text = "Generated from a Nix evaluation of ItzEmoji/nvim"
+
+generate_anchors = true
+highlight_code = true
+tab_style = "none"
+
+# No `revision`. It only affects `declarations`, which the generator leaves
+# empty on purpose: ndg 2.9 hardcodes a nixpkgs URL for declarations and gives
+# no way to point it at another repository, so an entry there becomes a dead
+# link. Source links are markdown in each option's description instead.
+
+[search]
+enable = true
+max_heading_level = 3
