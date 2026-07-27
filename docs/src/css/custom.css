@@ -32,6 +32,14 @@
   color: var(--ifm-color-emphasis-700);
 }
 
+/* Structured defaults render as code blocks inside the metadata row; keep them
+   full-width instead of letting flex squeeze them into a column. */
+.option-meta > pre,
+.option-meta > .theme-code-block {
+  flex-basis: 100%;
+  min-width: 0;
+}
+
 .option-type-details > summary {
   cursor: pointer;
   font-size: 0.9rem;
