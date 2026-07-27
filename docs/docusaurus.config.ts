@@ -36,6 +36,17 @@ const config: Config = {
       } satisfies Preset.Options,
     ],
   ],
+  themes: [
+    [
+      '@easyops-cn/docusaurus-search-local',
+      {
+        hashed: true,
+        indexDocs: true,
+        indexBlog: false,
+        indexPages: true,
+      },
+    ],
+  ],
   themeConfig: {
     colorMode: {
       defaultMode: 'dark',
