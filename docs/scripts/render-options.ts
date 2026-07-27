@@ -58,6 +58,41 @@ export function groupBySource(options: OptionEntry[]): Map<string, OptionEntry[]
 // metadata items below use literal `<strong>` tags instead of `**...**`, and every HTML
 // block is separated from its neighbours by a blank line.
 
+/**
+ * Renders the "Default:" metadata item. Most defaults are short scalars that fit
+ * inline as `<code>...</code>`. Some nvf options (e.g. Lua loader snippets) carry a
+ * `defaultText` that is itself a fenced markdown code block; splicing that verbatim
+ * into an inline `<code>` span breaks MDX, because the embedded ``` fence terminates
+ * the surrounding paragraph before the closing `</code>` is reached. Detect that case
+ * and render the fenced block on its own line instead, matching the pattern already
+ * used for oversized types.
+ */
+function renderDefault(defaultText: string): string {
+  const trimmed = defaultText.trim();
+  const fenceMatch = trimmed.match(/^```(\S*)\n([\s\S]*?)\n```$/);
+  if (fenceMatch) {
+    const lang = fenceMatch[1] || 'text';
+    const code = fenceMatch[2];
+    return [
+      '<span class="option-meta__item"><strong>Default:</strong></span>',
+      '',
+      `\`\`\`${lang}`,
+      code,
+      '```',
+    ].join('\n');
+  }
+  if (trimmed.includes('\n')) {
+    return [
+      '<span class="option-meta__item"><strong>Default:</strong></span>',
+      '',
+      '```',
+      trimmed,
+      '```',
+    ].join('\n');
+  }
+  return `<span class="option-meta__item"><strong>Default:</strong> <code>${escapeMdx(defaultText)}</code></span>`;
+}
+
 function renderType(type: string | null): string {
   if (!type) return '';
   if (type.length <= TYPE_COLLAPSE_THRESHOLD) {
@@ -91,10 +126,7 @@ export function renderOption(entry: OptionEntry): string {
   const typeText = renderType(entry.type);
   if (typeText) meta.push(typeText, '');
   if (entry.default !== null) {
-    meta.push(
-      `<span class="option-meta__item"><strong>Default:</strong> <code>${escapeMdx(entry.default)}</code></span>`,
-      '',
-    );
+    meta.push(renderDefault(entry.default), '');
   }
   const links = entry.sourceFiles
     .map((file) => `[\`${file}\`](${REPO_BLOB}/${file})`)
