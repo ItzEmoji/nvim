@@ -4,7 +4,7 @@
  * formatting decision lives here.
  */
 
-export type Tagged =
+type Tagged =
   | {__type: 'lua'; code: string}
   | {__type: 'derivation'; name: string; path: string}
   | {__type: 'function'}
@@ -28,7 +28,8 @@ function isTagged(v: OptValue): v is Tagged {
 }
 
 function quoteString(s: string): string {
-  return `"${s.replace(/\\/g, '\\\\').replace(/"/g, '\\"')}"`;
+  const escaped = s.replace(/\\|"|\$\{/g, (m) => (m === '${' ? '\\${' : `\\${m}`));
+  return `"${escaped}"`;
 }
 
 function quoteAttrName(name: string): string {
@@ -42,10 +43,16 @@ function indentLines(text: string, pad: string): string {
     .join('\n');
 }
 
+/** Escapes the two metacharacters Nix's `''`-indented strings are sensitive to. */
+function escapeNixIndentedString(s: string): string {
+  return s.replace(/''|\$\{/g, (m) => (m === "''" ? "'''" : "''${"));
+}
+
 /** Renders a nested Lua snippet the way it appears in the Nix source. */
 function luaInline(code: string, indent: number): string {
   const pad = '  '.repeat(indent + 1);
-  return `mkLuaInline ''\n${indentLines(code.trimEnd(), pad)}\n${'  '.repeat(indent)}''`;
+  const escaped = escapeNixIndentedString(code.trimEnd());
+  return `mkLuaInline ''\n${indentLines(escaped, pad)}\n${'  '.repeat(indent)}''`;
 }
 
 export function toNixText(v: OptValue, indent = 0): string {

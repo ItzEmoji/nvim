@@ -24,6 +24,14 @@ describe('toNixText', () => {
     expect(toNixText('a\\b')).toBe('"a\\\\b"');
   });
 
+  test('escapes interpolation syntax in strings', () => {
+    expect(toNixText('${foo}')).toBe('"\\${foo}"');
+  });
+
+  test('escapes a backslash immediately before interpolation without double-escaping', () => {
+    expect(toNixText('a\\${foo}')).toBe('"a\\\\\\${foo}"');
+  });
+
   test('renders an empty list', () => {
     expect(toNixText([])).toBe('[ ]');
   });
@@ -83,6 +91,45 @@ describe('toNixText', () => {
       '}',
     ].join('\n');
     expect(toNixText({sel: {__type: 'lua', code: 'return 1'}})).toBe(expected);
+  });
+
+  test('escapes a literal \'\' inside lua code embedded in the nix string', () => {
+    const expected = [
+      '{',
+      "  sel = mkLuaInline ''",
+      "    local s = '''",
+      "  '';",
+      '}',
+    ].join('\n');
+    expect(toNixText({sel: {__type: 'lua', code: "local s = ''"}})).toBe(expected);
+  });
+
+  test('escapes a literal ${ inside lua code embedded in the nix string', () => {
+    const expected = [
+      '{',
+      "  sel = mkLuaInline ''",
+      "    local x = \"''${foo}\"",
+      "  '';",
+      '}',
+    ].join('\n');
+    expect(toNixText({sel: {__type: 'lua', code: 'local x = "${foo}"'}})).toBe(expected);
+  });
+
+  test('escapes both \'\' and ${ in the same lua snippet without corrupting either', () => {
+    const expected = [
+      '{',
+      "  sel = mkLuaInline ''",
+      "    local s = '''; local x = \"''${foo}\"",
+      "  '';",
+      '}',
+    ].join('\n');
+    expect(
+      toNixText({sel: {__type: 'lua', code: "local s = ''; local x = \"${foo}\""}}),
+    ).toBe(expected);
+  });
+
+  test('renders the unknown tag as unrepresentable', () => {
+    expect(toNixText({__type: 'unknown'})).toBe('<unrepresentable>');
   });
 });
 
