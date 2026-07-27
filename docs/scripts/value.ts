@@ -21,7 +21,7 @@ export type OptValue =
   | Tagged
   | {[key: string]: OptValue};
 
-const IDENTIFIER = /^[A-Za-z_][A-Za-z0-9_']*$/;
+const IDENTIFIER = /^[A-Za-z_][A-Za-z0-9_'-]*$/;
 
 function isTagged(v: OptValue): v is Tagged {
   return typeof v === 'object' && v !== null && !Array.isArray(v) && '__type' in v;

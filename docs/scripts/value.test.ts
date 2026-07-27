@@ -40,8 +40,13 @@ describe('toNixText', () => {
     expect(toNixText({b: 1, a: 2})).toBe('{\n  a = 2;\n  b = 1;\n}');
   });
 
+  test('leaves hyphenated names unquoted — they are valid Nix identifiers', () => {
+    expect(toNixText({'nvim-cmp': true})).toBe('{\n  nvim-cmp = true;\n}');
+  });
+
   test('quotes attribute names that are not valid identifiers', () => {
-    expect(toNixText({'nvim-cmp': true})).toBe('{\n  "nvim-cmp" = true;\n}');
+    expect(toNixText({'foo.bar': true})).toBe('{\n  "foo.bar" = true;\n}');
+    expect(toNixText({'with space': true})).toBe('{\n  "with space" = true;\n}');
   });
 
   test('nests structures with increasing indent', () => {
