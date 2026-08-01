@@ -29,5 +29,8 @@ are not themselves flake-parts modules and are not touched by `import-tree`.
 
 `nix build .#keymaps-json` evaluates the configuration and reads the keybindings it
 sets, along with the which-key group labels that organize them. A renderer turns that
-JSON into the Keybindings page. Because the data comes from the same evaluation that
-builds the editor, the page cannot list binds the editor does not actually have.
+JSON into the Keybindings page, which is then committed to the repo. Because the data
+comes from the same evaluation that builds the editor, a freshly generated page cannot
+list binds the editor does not actually have — but the committed page is only as fresh
+as its last regeneration, which is why CI re-runs the evaluation and fails the PR if the
+committed page has drifted.
