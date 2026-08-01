@@ -230,7 +230,7 @@ export function writeKeybindings(input: OptionsFile, outPath: string): boolean {
 
   writeFileSync(
     outPath,
-    renderKeybindingsPage(keymaps as unknown as Keymap[], register),
+    renderKeybindingsPage(keymaps as unknown as Keymap[], register, ' '),
   );
   return true;
 }

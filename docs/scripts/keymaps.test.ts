@@ -1,5 +1,8 @@
 import {describe, expect, test} from 'bun:test';
 import {
+  escapeMdx,
+  escapeMdxDescription,
+  formatLeader,
   formatModes,
   groupKeymaps,
   groupLabelFor,
@@ -21,8 +24,17 @@ const findFile: Keymap = {
   key: '<leader>ff',
   mode: 'n',
   desc: 'Find File',
-  action: '<cmd>lua x<CR>',
 };
+
+// Keeps the existing page tests readable now that the leader is a parameter:
+// almost every case cares about the bindings, not the leader.
+function render(
+  keymaps: Keymap[],
+  reg: WhichKeyRegister = register,
+  leader = ' ',
+): string {
+  return renderKeybindingsPage(keymaps, reg, leader);
+}
 
 describe('normalizeModes', () => {
   test('wraps a bare mode', () => {
@@ -116,76 +128,125 @@ describe('groupKeymaps', () => {
 
 describe('renderKeybindingsPage', () => {
   test('emits front matter and a heading', () => {
-    const page = renderKeybindingsPage([findFile], register);
+    const page = render([findFile]);
     expect(page.startsWith('---\n')).toBe(true);
     expect(page).toContain('title: Keybindings');
     expect(page).toContain('# Keybindings');
   });
 
   test('states how many binds there are', () => {
-    const page = renderKeybindingsPage([findFile], register);
+    const page = render([findFile]);
     expect(page).toContain('all 1 binds');
   });
 
   test('warns that the page is generated', () => {
-    expect(renderKeybindingsPage([findFile], register)).toContain('generated');
+    expect(render([findFile])).toContain('generated');
   });
 
   test('renders a group heading and the bind', () => {
-    const page = renderKeybindingsPage([findFile], register);
+    const page = render([findFile]);
     expect(page).toContain('## Find');
     expect(page).toContain('| `<leader>ff` | Find File |');
   });
 
   test('omits the mode column when every bind is normal-mode-only', () => {
-    const page = renderKeybindingsPage([findFile], register);
+    const page = render([findFile]);
     expect(page).toContain('| Key | Action |');
     expect(page).not.toContain('| Key | Action | Mode |');
   });
 
   test('adds the mode column when a bind needs it', () => {
-    const page = renderKeybindingsPage(
+    const page = render(
       [findFile, {key: '<leader>fx', mode: ['n', 'x'], desc: 'Visual thing'}],
-      register,
     );
     expect(page).toContain('| Key | Action | Mode |');
     expect(page).toContain('| `<leader>fx` | Visual thing | n, x |');
   });
 
   test('fills the mode column for normal-mode binds once it exists', () => {
-    const page = renderKeybindingsPage(
+    const page = render(
       [findFile, {key: '<leader>fx', mode: ['n', 'x'], desc: 'Visual thing'}],
-      register,
     );
     expect(page).toContain('| `<leader>ff` | Find File | n |');
   });
 
   test('leaves a blank line before the first group heading', () => {
-    const page = renderKeybindingsPage([findFile], register);
+    const page = render([findFile]);
     expect(page).toContain('\n\n## Find');
   });
 
   test('escapes a pipe so it cannot break the table', () => {
-    const page = renderKeybindingsPage(
+    const page = render(
       [{key: '<leader>fp', mode: 'n', desc: 'Pipe | through'}],
-      register,
     );
     expect(page).toContain('Pipe \\| through');
   });
 
   test('escapes MDX-hostile characters outside code spans', () => {
-    const page = renderKeybindingsPage(
+    const page = render(
       [{key: '<leader>fq', mode: 'n', desc: 'Takes {a} arg'}],
-      register,
     );
     expect(page).toContain('Takes \\{a\\} arg');
   });
 
   test('tolerates a missing description', () => {
-    const page = renderKeybindingsPage(
+    const page = render(
       [{key: '<leader>fz', mode: 'n'}],
-      register,
     );
     expect(page).toContain('| `<leader>fz` |');
+  });
+});
+
+describe('formatLeader', () => {
+  test('names the space key, which is unreadable rendered literally', () => {
+    expect(formatLeader(' ')).toBe('<Space>');
+  });
+
+  test('passes a printable leader through', () => {
+    expect(formatLeader(',')).toBe(',');
+  });
+});
+
+describe('escapeMdx', () => {
+  test('escapes braces and angle brackets', () => {
+    expect(escapeMdx('a {b} <c>')).toBe('a \\{b\\} \\<c\\>');
+  });
+
+  test('leaves ordinary prose untouched', () => {
+    expect(escapeMdx('Whether to enable Noice.')).toBe('Whether to enable Noice.');
+  });
+});
+
+describe('escapeMdxDescription', () => {
+  test('leaves braces inside a backtick span untouched', () => {
+    expect(escapeMdxDescription('Set via `{ foo = "bar"; }`.')).toBe(
+      'Set via `{ foo = "bar"; }`.',
+    );
+  });
+
+  test('escapes braces outside any backtick span', () => {
+    expect(escapeMdxDescription('Use {a} or <b>.')).toBe('Use \\{a\\} or \\<b\\>.');
+  });
+
+  test('escapes prose braces but leaves an adjacent code span untouched', () => {
+    expect(escapeMdxDescription('Wrap {value} in `{foo = "bar";}` for Lua.')).toBe(
+      'Wrap \\{value\\} in `{foo = "bar";}` for Lua.',
+    );
+  });
+});
+
+describe('renderKeybindingsPage leader and which-key framing', () => {
+  test('takes the leader from the data rather than hardcoding it', () => {
+    expect(render([findFile], register, ',')).toContain('The leader key is `,`.');
+  });
+
+  test('renders a space leader as <Space>', () => {
+    expect(render([findFile])).toContain('The leader key is `<Space>`.');
+  });
+
+  test('tells the reader which-key shows the same descriptions in the editor', () => {
+    const page = render([findFile]);
+    expect(page).toContain('which-key');
+    expect(page).toContain('same descriptions');
   });
 });
