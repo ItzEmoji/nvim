@@ -40,6 +40,9 @@ check "smart find files desc" "Smart Find Files" \
 check "smart find files mode" "n" \
   "$(jq -r '.keymaps[] | select(.key=="<leader><space>") | .mode' "$json")"
 
+check "some keymap carries a list-valued mode" "true" \
+  "$(jq -r '[.keymaps[] | select((.mode | type) == "array")] | length > 0' "$json")"
+
 # Spot-check a which-key group label, including one carrying the `+` convention.
 check "find group label" "Find" "$(jq -r '.groups["<leader>f"]' "$json")"
 check "gitsigns group label keeps its raw + prefix" "+Gitsigns" \
