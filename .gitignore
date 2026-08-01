@@ -13,3 +13,7 @@ docs/.docusaurus/
 
 # Editor scratch
 *.swp
+
+# Superpowers spec/plan scratch files; must never be committed.
+docs/superpowers/
+.superpowers/

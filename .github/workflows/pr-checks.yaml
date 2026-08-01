@@ -58,6 +58,9 @@ jobs:
         working-directory: docs
         run: bun run typecheck
 
+      - name: Verify the shape and content of keymaps.json
+        run: ./nix/test-keymaps-json.sh
+
       - name: Extract keybindings from the configuration
         run: nix build '.#keymaps-json' --out-link docs/keymaps.json
 
