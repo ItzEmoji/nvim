@@ -61,15 +61,20 @@ jobs:
       - name: Extract keybindings from the configuration
         run: nix build '.#keymaps-json' --out-link docs/keymaps.json
 
+      - name: Delete the committed page before regenerating
+        run: rm -f docs/docs/reference/keybindings.mdx
+
       - name: Regenerate the keybindings page
         working-directory: docs
         run: bun run render
 
       - name: Fail if the committed page is stale
         run: |
-          # Safe to stage this path: this is a throwaway CI checkout and nothing
-          # downstream reads git state, so staging here can't leak unrelated
-          # local changes into a commit.
+          # The page was deleted above, so `git add -A` is what turns a renderer
+          # that skips the write (e.g. an empty keymaps list) into a staged
+          # deletion `git diff --exit-code` alone wouldn't see. This is also a
+          # throwaway CI checkout, so staging here can't leak unrelated local
+          # changes into a commit.
           git add -A -- docs/docs/reference/keybindings.mdx
           if ! git diff --cached --exit-code -- docs/docs/reference/keybindings.mdx; then
             echo "::error::The generated keybindings page is out of date. Run 'bun run gen' in docs/ and commit the result."
