@@ -7,6 +7,14 @@ on:
       - edited
       - synchronize
       - reopened
+  # Cloudflare deploys the site on every push to main, so the drift check must also
+  # run there: a direct push, or a PR merged after its base moved, can otherwise ship
+  # a stale site with nothing to catch it. `nix-checks` shares this `on:` block too,
+  # but `nix flake check` has no PR-specific behaviour, so also running it on push to
+  # main is harmless.
+  push:
+    branches:
+      - main
 
 permissions:
   contents: read
@@ -22,3 +30,4 @@ jobs:
 
       - name: Run flake checks
         run: nix flake check --show-trace
+

@@ -1,0 +1,170 @@
+/**
+ * Renders every bind set through `vim.keymaps` as one scannable page.
+ *
+ * The binds come from `vim.keymaps`, and the group names come from
+ * `vim.binds.whichKey.register` — the same labels which-key shows in the editor.
+ * Some plugins register mappings through their own submodules instead of
+ * `vim.keymaps`; those appear in the which-key popup but not on this page, so
+ * the popup remains the complete reference.
+ */
+export interface Keymap {
+  key: string;
+  /** nvf accepts either a bare mode or a list of them. */
+  mode: string | string[];
+  desc?: string | null;
+}
+
+/** A which-key prefix registry: `"<leader>f"` -> `"Find"`. */
+export type WhichKeyRegister = Record<string, string>;
+
+export interface KeymapGroup {
+  label: string;
+  entries: Keymap[];
+}
+
+const LEADER = '<leader>';
+const OTHER_LEADER = 'Other leader keys';
+const WITHOUT_LEADER = 'Without leader';
+
+export function normalizeModes(mode: string | string[]): string[] {
+  return Array.isArray(mode) ? mode : [mode];
+}
+
+/**
+ * Shows the mode only when it is worth showing. Nearly every bind is
+ * normal-mode-only, so printing "n" 100 times is noise that hides the handful
+ * of binds that genuinely differ.
+ */
+export function formatModes(mode: string | string[]): string {
+  const modes = normalizeModes(mode);
+  if (modes.length === 1 && modes[0] === 'n') return '';
+  return modes.join(', ');
+}
+
+/**
+ * Finds the registered which-key prefix a bind belongs under: the longest
+ * registered prefix that is a strict prefix of the key.
+ */
+export function groupLabelFor(key: string, register: WhichKeyRegister): string {
+  const prefixes = Object.keys(register)
+    .filter((prefix) => key.startsWith(prefix) && key !== prefix)
+    .sort((a, b) => b.length - a.length);
+
+  // which-key labels group prefixes with a leading `+` by convention; it is
+  // popup shorthand and reads as noise in a heading.
+  if (prefixes.length > 0) return register[prefixes[0]].replace(/^\+/, '');
+  return key.startsWith(LEADER) ? OTHER_LEADER : WITHOUT_LEADER;
+}
+
+/**
+ * Buckets binds by which-key group. Named groups come first in alphabetical
+ * order, then the two catch-alls, so the page always reads the same way.
+ */
+export function groupKeymaps(
+  keymaps: Keymap[],
+  register: WhichKeyRegister,
+): KeymapGroup[] {
+  const buckets = new Map<string, Keymap[]>();
+
+  for (const keymap of keymaps) {
+    const label = groupLabelFor(keymap.key, register);
+    const bucket = buckets.get(label);
+    if (bucket) bucket.push(keymap);
+    else buckets.set(label, [keymap]);
+  }
+
+  const catchAlls = [OTHER_LEADER, WITHOUT_LEADER];
+  const named = [...buckets.keys()]
+    .filter((label) => !catchAlls.includes(label))
+    .sort((a, b) => (a < b ? -1 : a > b ? 1 : 0));
+
+  return [...named, ...catchAlls]
+    .filter((label) => buckets.has(label))
+    .map((label) => ({
+      label,
+      entries: [...buckets.get(label)!].sort((a, b) =>
+        a.key < b.key ? -1 : a.key > b.key ? 1 : 0,
+      ),
+    }));
+}
+
+/** Escapes the characters that would otherwise be parsed as MDX markup. */
+export function escapeMdx(s: string): string {
+  return s.replace(/[{}<>]/g, (c) => `\\${c}`);
+}
+
+/**
+ * Escapes MDX-hostile characters in a description, but only in the segments
+ * outside inline backtick spans. MDX does not interpret `{}`/`<>` inside a
+ * backtick-fenced code span, so escaping them there would render the literal
+ * backslashes to the reader instead of being invisible.
+ */
+export function escapeMdxDescription(s: string): string {
+  const parts = s.split(/(`+[^`]*`+)/);
+  return parts.map((part, i) => (i % 2 === 1 ? part : escapeMdx(part))).join('');
+}
+
+/**
+ * Names the leader key for prose. A literal space is invisible between
+ * backticks, so it gets the conventional `<Space>` spelling.
+ */
+export function formatLeader(leader: string): string {
+  return leader === ' ' ? '<Space>' : leader;
+}
+
+/** Escapes the one character that would break out of a markdown table cell. */
+function cell(text: string): string {
+  return text.replace(/\|/g, '\\|');
+}
+
+function renderGroup(group: KeymapGroup): string {
+  const showMode = group.entries.some((entry) => formatModes(entry.mode) !== '');
+
+  const header = showMode
+    ? ['| Key | Action | Mode |', '| --- | --- | --- |']
+    : ['| Key | Action |', '| --- | --- |'];
+
+  const rows = group.entries.map((entry) => {
+    const key = `\`${cell(entry.key)}\``;
+    const desc = escapeMdxDescription(cell(entry.desc ?? ''));
+    // Once the column exists every row fills it — a blank cell reads as missing
+    // data rather than as "normal mode".
+    const modes = cell(normalizeModes(entry.mode).join(', '));
+    return showMode ? `| ${key} | ${desc} | ${modes} |` : `| ${key} | ${desc} |`;
+  });
+
+  return [`## ${group.label}`, '', ...header, ...rows, ''].join('\n');
+}
+
+export function renderKeybindingsPage(
+  keymaps: Keymap[],
+  register: WhichKeyRegister,
+  leader: string,
+): string {
+  const groups = groupKeymaps(keymaps, register);
+
+  const header = [
+    '---',
+    'title: Keybindings',
+    'sidebar_label: Keybindings',
+    'sidebar_position: 1',
+    'description: Every bind this configuration sets through vim.keymaps',
+    '---',
+    '',
+    '# Keybindings',
+    '',
+    '{/* This page is generated by docs/scripts/render-keymaps.ts. Do not edit it by hand. */}',
+    '',
+    `The leader key is \`${formatLeader(leader)}\`. This page lists the ` +
+      `${keymaps.length} binds set through \`vim.keymaps\`, generated from the same Nix ` +
+      'evaluation that builds the editor. Some plugins register their own mappings ' +
+      'through their own submodules instead; those show up in the which-key popup ' +
+      '(press the leader key in the editor) but not on this page. The popup is the ' +
+      'complete reference — this page is its searchable offline copy of everything ' +
+      'that comes from `vim.keymaps`.',
+    '',
+    '',
+  ].join('\n');
+
+  return header + groups.map(renderGroup).join('\n');
+}

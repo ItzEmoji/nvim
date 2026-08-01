@@ -6,18 +6,27 @@ on:
       - main
 
 permissions:
-  contents: write
-  pull-requests: write
+  contents: read
+
+# Pages allows a single concurrent deployment. Don't cancel one in progress:
+# a half-deployed site is worse than waiting for the previous release to land.
+concurrency:
+  group: pages
+  cancel-in-progress: false
 
 jobs:
-  release-please:
+  release:
     runs-on: ubuntu-latest
-
+    permissions:
+      contents: write
+      pull-requests: write
+    outputs:
+      release_created: ${{ steps.release.outputs.release_created }}
     steps:
-      - name: Generate App Token 
+      - name: Generate App Token
         id: app-token
         uses: actions/create-github-app-token@v3
-        with: 
+        with:
           client-id: ${{ secrets.APP_CLIENT_ID }}
           private-key: ${{ secrets.APP_PRIVATE_KEY }}
       - uses: googleapis/release-please-action@v5
@@ -26,3 +35,47 @@ jobs:
           token: ${{ steps.app-token.outputs.token }}
           config-file: .github/release-please-config.json
           manifest-file: version.json
+
+  docs:
+    needs: release
+    if: needs.release.outputs.release_created == 'true'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Pages
+        id: setup-pages
+        uses: actions/configure-pages@v5
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+
+      - name: Install docs dependencies
+        working-directory: docs
+        run: bun install --frozen-lockfile
+
+      - name: Build docs
+        working-directory: docs
+        env:
+          DOCS_URL: ${{ steps.setup-pages.outputs.origin }}
+          DOCS_BASE_URL: ${{ steps.setup-pages.outputs.base_path }}/
+        run: bun run build
+
+      - name: Upload Pages Artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: ./docs/build
+
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4

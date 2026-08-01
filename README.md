@@ -1,4 +1,9 @@
 [![built with nix](https://builtwithnix.org/badge.svg)](https://builtwithnix.org) [![Build nvf (x86_64, aarch64)](https://github.com/ItzEmoji/nvim/actions/workflows/cache.yaml/badge.svg)](https://github.com/ItzEmoji/nvim/actions/workflows/cache.yaml)
+
+📖 **Documentation** — a generated reference of the binds this configuration sets through
+`vim.keymaps`, plus guides to how it is built. Built with Docusaurus from `docs/`. Not
+deployed yet; a hosted link will replace this note once the site is live.
+
 # NVF-Neovim-Config
 A declaratively managed Neovim configuration using pure Nix and NVF.
 
