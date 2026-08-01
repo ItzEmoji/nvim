@@ -22,13 +22,12 @@ convention rather than by an explicit import list. `flake.nix` imports the whole
 `inputs.import-tree ../conf` as an nvf module list, so every file in `conf/` is
 picked up automatically. Adding a file to `conf/` is enough to activate it; there is
 no separate registration step. `nix/` is different: it holds plain Nix expressions,
-such as `nix/extract-options.nix`, that `modules/docs.nix` calls into directly — they
+such as `nix/extract-keymaps.nix`, that `modules/docs.nix` calls into directly — they
 are not themselves flake-parts modules and are not touched by `import-tree`.
 
 ## Where this site comes from
 
-`nix build .#options-json` evaluates the configuration and walks the resulting option
-tree, keeping every option that a file under `conf/` defines. A renderer turns that
-JSON into the pages under Option Reference. Because the data comes from the same
-evaluation that builds the editor, the reference cannot describe options the editor
-does not actually have.
+`nix build .#keymaps-json` evaluates the configuration and reads the keybindings it
+sets, along with the which-key group labels that organize them. A renderer turns that
+JSON into the Keybindings page. Because the data comes from the same evaluation that
+builds the editor, the page cannot list binds the editor does not actually have.

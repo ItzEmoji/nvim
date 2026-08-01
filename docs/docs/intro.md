@@ -18,7 +18,12 @@ nix run github:ItzEmoji/nvim --accept-flake-config
 
 ## What this site documents
 
-The [Option Reference](/docs/category/option-reference) is generated directly from a Nix
-evaluation of this configuration. Every page lists the options one `conf/` file sets, their
-evaluated values, and their types as nvf declares them. It cannot drift from the source,
+The [Keybindings](/docs/reference/keybindings) page lists every bind this configuration
+sets, generated directly from a Nix evaluation of it. It cannot drift from the source,
 because it is produced from the source.
+
+You will usually not need it. Press `<Space>` in the editor and which-key shows you the
+same descriptions, grouped the same way, as you type. The page is the searchable offline
+copy.
+
+The guides cover how the flake is put together and how language support is wired up.

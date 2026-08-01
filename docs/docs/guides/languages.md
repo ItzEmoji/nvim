@@ -9,8 +9,8 @@ Language servers, formatters and treesitter grammars are installed and configure
 Nix. There is no Mason and no runtime package manager — everything is pinned in
 `flake.lock`.
 
-The exact set of enabled languages, and the options controlling them, is listed in the
-[`languages` option reference](/docs/reference/options/languages).
+The exact set of enabled languages, and the options controlling them, lives in
+[`conf/languages.nix`](https://github.com/ItzEmoji/nvim/blob/main/conf/languages.nix).
 
 ## What's enabled today
 

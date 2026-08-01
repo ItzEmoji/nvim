@@ -1,7 +1,7 @@
 # Documentation site
 
-A Docusaurus site documenting this Neovim configuration. The option reference under
-`docs/reference/options/` is **generated** — never edit those files by hand.
+A Docusaurus site documenting this Neovim configuration. The keybindings page at
+`docs/reference/keybindings.mdx` is **generated** — never edit it by hand.
 
 ## Development
 
@@ -14,15 +14,16 @@ bun install
 bun start
 ```
 
-## Regenerating the option reference
+## Regenerating the keybindings page
 
-After changing anything under `conf/`, regenerate and commit the reference:
+After changing any keybinding or which-key group under `conf/`, regenerate and commit
+the page:
 
 ```bash
 bun run gen
 ```
 
-This runs `nix build '..#options-json'` and then the renderer. CI fails if the
+This runs `nix build '..#keymaps-json'` and then the renderer. CI fails if the
 committed output is stale.
 
 ## Deployment
