@@ -9,11 +9,10 @@
       };
     in
     {
-      packages.options-json = import ../nix/extract-options.nix {
+      packages.keymaps-json = import ../nix/extract-keymaps.nix {
         inherit pkgs;
         inherit (pkgs) lib;
-        inherit (nvfConfig) options;
-        confDir = ../conf;
+        inherit (nvfConfig) config;
       };
     };
 }
