@@ -58,21 +58,21 @@ jobs:
         working-directory: docs
         run: bun run typecheck
 
-      - name: Extract options from the configuration
-        run: nix build '.#options-json' --out-link docs/options.json
+      - name: Extract keybindings from the configuration
+        run: nix build '.#keymaps-json' --out-link docs/keymaps.json
 
-      - name: Regenerate the option reference
+      - name: Regenerate the keybindings page
         working-directory: docs
         run: bun run render
 
-      - name: Fail if the committed reference is stale
+      - name: Fail if the committed page is stale
         run: |
-          # Safe to stage everything under this path: this is a throwaway CI
-          # checkout and nothing downstream reads git state, so `git add -A` here
-          # can't leak unrelated local changes into a commit.
-          git add -A -- docs/docs/reference
-          if ! git diff --cached --exit-code -- docs/docs/reference; then
-            echo "::error::The generated reference is out of date. Run 'bun run gen' in docs/ and commit the result."
+          # Safe to stage this path: this is a throwaway CI checkout and nothing
+          # downstream reads git state, so staging here can't leak unrelated
+          # local changes into a commit.
+          git add -A -- docs/docs/reference/keybindings.mdx
+          if ! git diff --cached --exit-code -- docs/docs/reference/keybindings.mdx; then
+            echo "::error::The generated keybindings page is out of date. Run 'bun run gen' in docs/ and commit the result."
             exit 1
           fi
 
