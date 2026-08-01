@@ -136,7 +136,7 @@ describe('renderKeybindingsPage', () => {
 
   test('states how many binds there are', () => {
     const page = render([findFile]);
-    expect(page).toContain('all 1 binds');
+    expect(page).toContain('lists the 1 binds');
   });
 
   test('warns that the page is generated', () => {
@@ -244,9 +244,9 @@ describe('renderKeybindingsPage leader and which-key framing', () => {
     expect(render([findFile])).toContain('The leader key is `<Space>`.');
   });
 
-  test('tells the reader which-key shows the same descriptions in the editor', () => {
+  test('tells the reader the which-key popup is the complete reference', () => {
     const page = render([findFile]);
     expect(page).toContain('which-key');
-    expect(page).toContain('same descriptions');
+    expect(page).toContain('complete reference');
   });
 });

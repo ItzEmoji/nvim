@@ -27,10 +27,13 @@ are not themselves flake-parts modules and are not touched by `import-tree`.
 
 ## Where this site comes from
 
-`nix build .#keymaps-json` evaluates the configuration and reads the keybindings it
-sets, along with the which-key group labels that organize them. A renderer turns that
-JSON into the Keybindings page, which is then committed to the repo. Because the data
-comes from the same evaluation that builds the editor, a freshly generated page cannot
-list binds the editor does not actually have — but the committed page is only as fresh
-as its last regeneration, which is why CI re-runs the evaluation and fails the PR if the
+`nix build .#keymaps-json` evaluates the configuration and reads the binds set through
+`vim.keymaps`, along with the which-key group labels that organize them. Plugins that
+register mappings through their own submodules instead of `vim.keymaps` are not part of
+that evaluation, so the page it produces is not a full mirror of the editor's binds — the
+which-key popup remains the complete reference. A renderer turns the JSON into the
+Keybindings page, which is then committed to the repo. Because the data comes from the
+same evaluation that builds the editor, a freshly generated page cannot list `vim.keymaps`
+binds the editor does not actually have — but the committed page is only as fresh as its
+last regeneration, which is why CI re-runs the evaluation and fails the PR if the
 committed page has drifted.
