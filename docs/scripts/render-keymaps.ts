@@ -34,7 +34,15 @@ const OUT_PATH = join(
  * Writes the keybindings page. Returns false when the config sets no keymaps, so
  * the caller can skip the page rather than emit an empty one.
  */
+const SUPPORTED_SCHEMA_VERSION = 1;
+
 export function writeKeybindings(input: KeymapsFile, outPath: string): boolean {
+  if (input.schemaVersion !== SUPPORTED_SCHEMA_VERSION) {
+    throw new Error(
+      `unsupported schemaVersion ${input.schemaVersion}, expected ${SUPPORTED_SCHEMA_VERSION}`,
+    );
+  }
+
   if (!Array.isArray(input.keymaps) || input.keymaps.length === 0) return false;
 
   if (typeof input.leader !== 'string') {
@@ -59,14 +67,15 @@ if (import.meta.main) {
   }
 
   const input = JSON.parse(readFileSync(inputPath, 'utf8')) as KeymapsFile;
-  if (input.schemaVersion !== 1) {
-    console.error(`unsupported schemaVersion ${input.schemaVersion}, expected 1`);
-    process.exit(1);
-  }
 
-  if (writeKeybindings(input, OUT_PATH)) {
-    console.log(`wrote ${OUT_PATH}`);
-  } else {
-    console.log('no keymaps set; skipped the keybindings page');
+  try {
+    if (writeKeybindings(input, OUT_PATH)) {
+      console.log(`wrote ${OUT_PATH}`);
+    } else {
+      console.log('no keymaps set; skipped the keybindings page');
+    }
+  } catch (err) {
+    console.error(err instanceof Error ? err.message : String(err));
+    process.exit(1);
   }
 }

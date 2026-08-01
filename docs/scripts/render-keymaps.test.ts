@@ -62,4 +62,11 @@ describe('writeKeybindings', () => {
     const content = readFileSync(outPath, 'utf8');
     expect(content).toContain('The leader key is `,`.');
   });
+
+  test('throws and writes nothing for an unsupported schemaVersion', () => {
+    expect(() => writeKeybindings(input({schemaVersion: 2}), outPath)).toThrow(
+      /schemaVersion/,
+    );
+    expect(() => readFileSync(outPath, 'utf8')).toThrow();
+  });
 });
