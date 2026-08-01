@@ -11,8 +11,7 @@
     "test": "bun test",
     "extract": "nix build '..#options-json' --out-link options.json",
     "render": "bun scripts/render-options.ts options.json",
-    "gen": "bun run extract && bun run render && bun run ndg:options",
-    "ndg:options": "bun scripts/render-ndg-options.ts options.json options-ndg.json"
+    "gen": "bun run extract && bun run render"
   },
   "dependencies": {
     "@docusaurus/core": "3.10.1",

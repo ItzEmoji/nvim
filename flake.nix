@@ -18,9 +18,6 @@
     nvf.url = "github:notashelf/nvf";
     nvf.inputs.nixpkgs.follows = "nixpkgs";
     flake-parts.url = "github:hercules-ci/flake-parts";
-    # Renders the generated options JSON as an alternative to the Docusaurus site.
-    ndg.url = "github:feel-co/ndg";
-    ndg.inputs.nixpkgs.follows = "nixpkgs";
     import-tree.url = "github:vic/import-tree";
     treefmt-nix.url = "github:numtide/treefmt-nix";
   };

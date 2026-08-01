@@ -88,26 +88,6 @@
     "ndg": {
       "inputs": {
         "nixpkgs": [
-          "nixpkgs"
-        ]
-      },
-      "locked": {
-        "lastModified": 1785069289,
-        "narHash": "sha256-PMIMBGGJ2173NaD9S46uXApUMquweHu/Wr6v9BE4b5I=",
-        "owner": "feel-co",
-        "repo": "ndg",
-        "rev": "10dfee4ef7e24880c389cbc2d9ba44d7d4cd9c08",
-        "type": "github"
-      },
-      "original": {
-        "owner": "feel-co",
-        "repo": "ndg",
-        "type": "github"
-      }
-    },
-    "ndg_2": {
-      "inputs": {
-        "nixpkgs": [
           "nvf",
           "nixpkgs"
         ]
@@ -179,7 +159,7 @@
         "flake-compat": "flake-compat",
         "flake-parts": "flake-parts_2",
         "mnw": "mnw",
-        "ndg": "ndg_2",
+        "ndg": "ndg",
         "nixpkgs": [
           "nixpkgs"
         ],
@@ -203,7 +183,6 @@
       "inputs": {
         "flake-parts": "flake-parts",
         "import-tree": "import-tree",
-        "ndg": "ndg",
         "nixpkgs": "nixpkgs",
         "nvf": "nvf",
         "treefmt-nix": "treefmt-nix"
