@@ -37,9 +37,16 @@ const OUT_PATH = join(
 export function writeKeybindings(input: KeymapsFile, outPath: string): boolean {
   if (!Array.isArray(input.keymaps) || input.keymaps.length === 0) return false;
 
+  if (typeof input.leader !== 'string') {
+    throw new Error(
+      'keymaps.json has no leader; refusing to guess one, because the wrong ' +
+        'leader documents binds nobody can press',
+    );
+  }
+
   writeFileSync(
     outPath,
-    renderKeybindingsPage(input.keymaps, input.groups ?? {}, input.leader ?? ' '),
+    renderKeybindingsPage(input.keymaps, input.groups ?? {}, input.leader),
   );
   return true;
 }
