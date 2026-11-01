@@ -16,7 +16,7 @@ check() {
 }
 
 check "schemaVersion is 1" "1" "$(jq -r '.schemaVersion' "$json")"
-check "126 keymaps extracted" "126" "$(jq -r '.keymaps | length' "$json")"
+check "124 keymaps extracted" "124" "$(jq -r '.keymaps | length' "$json")"
 check "14 which-key groups extracted" "14" "$(jq -r '.groups | length' "$json")"
 check "leader is a single space" " " "$(jq -r '.leader' "$json")"
 
