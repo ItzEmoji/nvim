@@ -31,12 +31,6 @@ let
 
   nmap = mkMap "n";
 
-  # `<Plug>` targets are themselves mappings, so they must be resolved
-  # recursively. `noremap = true` (nvf's default) would silently break them.
-  plugMap =
-    mode: key: plug: desc:
-    (mkMap mode key "<Plug>(${plug})" desc) // { noremap = false; };
-
   newsPopup = snacks "win({ file = vim.api.nvim_get_runtime_file('doc/news.txt', false)[1], width = 0.6, height = 0.6, wo = { spell = false, wrap = false, signcolumn = 'yes', statuscolumn = ' ', conceallevel = 3 } })";
 in
 {
@@ -120,23 +114,10 @@ in
       (nmap "zR" "<cmd>lua require('ufo').openAllFolds()<CR>" "Open All Folds")
       (nmap "zM" "<cmd>lua require('ufo').closeAllFolds()<CR>" "Close All Folds")
 
-      # -- Clipboard (yanky) --------------------------------------------------
-      # `y` and `p` behave exactly as before, on Neovim's own registers, so
-      # deletes and changes never clobber the system clipboard.
-      (plugMap [ "n" "x" ] "y" "YankyYank" "Yank")
-      (plugMap [ "n" "x" ] "p" "YankyPutAfter" "Paste After")
-      (plugMap [ "n" "x" ] "P" "YankyPutBefore" "Paste Before")
-
-      # <leader>y and <leader>p are the only binds that touch the system
-      # clipboard, through Neovim's own `+` register. See conf/clipboard.nix.
+      # -- Clipboard ----------------------------------------------------------
+      # The only binds that touch the system clipboard; see conf/clipboard.nix.
       (mkMap [ "n" "x" ] "<leader>y" ''"+y'' "Yank to System Clipboard")
       (mkMap [ "n" "x" ] "<leader>p" ''"+p'' "Paste from System Clipboard")
-
-      # Straight after a paste, cycle it through earlier clipboard entries.
-      (plugMap "n" "<c-n>" "YankyNextEntry" "Cycle to Newer Clipboard Entry")
-      (plugMap "n" "<c-p>" "YankyPreviousEntry" "Cycle to Older Clipboard Entry")
-
-      (nmap "<leader>fy" "<cmd>YankyRingHistory<CR>" "Clipboard History")
 
       # -- Terminal & theme ---------------------------------------------------
       (nmap "<leader>tr" (snacks "terminal()") "Toggle Terminal")

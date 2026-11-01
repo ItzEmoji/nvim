@@ -15,10 +15,6 @@
       # Prompt to save instead of failing on :q with unsaved changes.
       confirm = true;
 
-      # Neovim's default shada. Required by yanky's "shada" ring storage,
-      # which is what keeps the clipboard history across restarts.
-      shada = "!,'100,<50,s10,h";
-
       # nvim-ufo needs folds enabled but starting fully open, otherwise
       # every file opens collapsed. zR and zM open and close everything.
       foldenable = true;
