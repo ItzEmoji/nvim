@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.1.1](https://github.com/ItzEmoji/nvim/compare/v1.1.0...v1.1.1) (2026-11-01)
+
+
+### Bug Fixes
+
+* **clipboard:** ship providers and use native yank and paste binds ([952f182](https://github.com/ItzEmoji/nvim/commit/952f1822cf8818020fbd89499a11e3223b24a56a))
+
 ## [1.1.0](https://github.com/ItzEmoji/nvim/compare/v1.0.0...v1.1.0) (2026-08-01)
 
 
